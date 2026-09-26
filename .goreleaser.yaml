@@ -1,5 +1,6 @@
-# goreleaser builds recap for macOS and Linux and publishes a GitHub release.
-# Dry run: mise run release-check. Release: tag vX.Y.Z, then goreleaser release --clean.
+# goreleaser builds recap for macOS and Linux and attaches the archives to the GitHub
+# release that release-please creates (.github/workflows/release.yml).
+# Dry run: mise run release-check.
 version: 2
 
 project_name: recap
@@ -32,8 +33,9 @@ archives:
 checksum:
   name_template: checksums.txt
 
+# release-please writes the release notes and CHANGELOG.md.
 changelog:
-  use: git
+  disable: true
 
 release:
   github:
@@ -41,3 +43,4 @@ release:
     name: recap
   draft: false
   prerelease: auto
+  mode: keep-existing

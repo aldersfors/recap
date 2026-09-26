@@ -152,3 +152,15 @@ go test ./internal/render -update   # rewrite golden files after an intended out
 Layout: `cmd/recap` (CLI), `internal/config`, `internal/activity` (GitHub, GitLab),
 `internal/summarize` (prompt in `prompt.md`, Anthropic and Bedrock providers),
 `internal/issue` (ISO weeks, front matter), `internal/render`.
+
+## CI and releases
+
+Every pull request and push to `main` runs `.github/workflows/ci.yml`: `mise run ci`
+(tests and lint), `goreleaser check` and a snapshot build of all platforms.
+
+Releases come from [release-please](https://github.com/googleapis/release-please).
+Commits follow [Conventional Commits](https://www.conventionalcommits.org), and on each
+push to `main` release-please updates an open release PR with the next version and
+`CHANGELOG.md`. Before 1.0, `feat` and breaking changes bump the minor version and
+`fix` bumps the patch. Merging the release PR tags `vX.Y.Z`, creates the GitHub release
+and runs goreleaser to attach the archives and `checksums.txt`. Never tag by hand.
