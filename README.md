@@ -164,3 +164,8 @@ push to `main` release-please updates an open release PR with the next version a
 `CHANGELOG.md`. Before 1.0, `feat` and breaking changes bump the minor version and
 `fix` bumps the patch. Merging the release PR tags `vX.Y.Z`, creates the GitHub release
 and runs goreleaser to attach the archives and `checksums.txt`. Never tag by hand.
+
+release-please acts as the release GitHub App, so its PRs run CI like any other PR.
+The repo needs the variable `RELEASE_APP_CLIENT_ID` and the secret
+`RELEASE_APP_PRIVATE_KEY`, and the app must be installed on this repo with read and
+write access to contents and pull requests.
