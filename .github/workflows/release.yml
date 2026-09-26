@@ -1,6 +1,6 @@
 # release-please keeps a release PR open on main. Merging it tags the version and
-# creates the GitHub release; goreleaser then attaches the binaries in the same run,
-# because a tag pushed with GITHUB_TOKEN does not trigger other workflows.
+# creates the GitHub release; goreleaser then attaches the binaries in the same run.
+# Needs the repo variable RELEASE_APP_CLIENT_ID and secret RELEASE_APP_PRIVATE_KEY.
 name: release
 
 on:
@@ -17,16 +17,24 @@ concurrency:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    # release-please acts through the release GitHub App, not GITHUB_TOKEN: GitHub
+    # holds CI on PRs opened with GITHUB_TOKEN until someone approves the run.
+    permissions: {}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
+          token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
