@@ -1,0 +1,59 @@
+---
+# Copy to recap.yaml (gitignored) and fill in. No credentials here: see README.md
+# "Credentials".
+
+# Who writes the update and who reads it. Both go into the drafting prompt, and
+# name also titles each issue ("Platform recap 2026-W39").
+team:
+  name: Platform
+  audience: the whole organization
+
+# github or gitlab. Only the matching block below is used.
+forge: github
+
+github:
+  org: your-org
+  # Explicit list. Add or remove repos freely.
+  repos:
+    - infra
+    - platform
+  # Optional: also scan every non-archived org repo tagged with one of these topics.
+  topics: []
+  # Skip every author whose login ends in [bot] (renovate, image updaters, ...).
+  exclude_bots: true
+  # Further authors whose PRs and commits are ignored (case-insensitive).
+  exclude_authors: []
+  # Keep only items by members of these org teams (slugs) or these logins.
+  # Both empty keeps everyone.
+  include_teams: [platform]
+  include_authors: []
+  # Count issues closed as completed in this repo into the italic stats line
+  # under the summary. Only issues assigned to an include_teams/include_authors
+  # member count. Empty: no line.
+  tickets_repo: ""
+
+gitlab:
+  base_url: https://gitlab.com
+  group: your-group
+  projects: []
+  topics: []
+  include_groups: []
+  include_authors: []
+  exclude_authors: []
+  exclude_bots: true
+
+# Weeks of activity per draft, ending with the drafted week. Override with --weeks.
+window_weeks: 1
+
+ai:
+  # anthropic (first-party Claude API) or bedrock (Bedrock Mantle endpoint).
+  provider: anthropic
+  anthropic:
+    model: claude-opus-5-5
+    # Where inference runs. Empty uses the API default, which is global.
+    inference_geo: ""
+  bedrock:
+    region: eu-north-1
+    model: anthropic.claude-opus-5
+    # Optional AWS profile; empty uses the default credential chain.
+    profile: ""

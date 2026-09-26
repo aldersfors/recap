@@ -1,0 +1,39 @@
+# mise - dev tooling + task runner for recap.
+# Docs: https://mise.jdx.dev   |   List tasks: `mise tasks`   |   Run one: `mise run <task>`
+[settings]
+lockfile = true
+lockfile_platforms = ["macos-arm64", "linux-x64"]
+
+[tools]
+go            = "1.26.7"
+golangci-lint = "2.13.2"
+
+[tasks.build]
+description = "Build the CLI into bin/recap"
+run = 'go build -ldflags "-X main.version=$(git describe --tags --always --dirty)" -o bin/recap ./cmd/recap'
+
+[tasks.test]
+description = "Run all Go tests"
+run = "go test ./..."
+
+[tasks.lint]
+description = "go vet + golangci-lint"
+run = ["go vet ./...", "golangci-lint run ./..."]
+
+[tasks.draft]
+description = "Draft this week's issue (pass flags after --, e.g. mise run draft -- --no-ai)"
+depends = ["build"]
+run = "bin/recap draft"
+
+[tasks.render]
+description = "Render the newest issue for Mattermost and Outlook"
+depends = ["build"]
+run = "bin/recap render"
+
+[tasks.ci]
+description = "Everything CI would run"
+depends = ["test", "lint"]
+
+[tasks.release-check]
+description = "Build every release target into dist/ without publishing"
+run = "goreleaser release --snapshot --clean --skip=publish"

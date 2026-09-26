@@ -1,0 +1,43 @@
+# goreleaser builds recap for macOS and Linux and publishes a GitHub release.
+# Dry run: mise run release-check. Release: tag vX.Y.Z, then goreleaser release --clean.
+version: 2
+
+project_name: recap
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: recap
+    main: ./cmd/recap
+    binary: recap
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - recap.example.yaml
+      - footer.example.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: git
+
+release:
+  github:
+    owner: jalet
+    name: recap
+  draft: false
+  prerelease: auto
