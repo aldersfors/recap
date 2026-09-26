@@ -12,4 +12,6 @@ by the Go CLI in `cmd/recap`. See README.md for the workflow.
 - Private repo `jalet/recap`, shared outside the original org. `recap.yaml`, `footer.md`
   and `issues/*` are gitignored and must stay out of commits: they hold one team's
   repos, hostnames and activity. Keep test fixtures on neutral names (`acme`, `alice`).
-- Releases: tag `vX.Y.Z`, then `goreleaser release --clean` (config in `.goreleaser.yaml`).
+- Releases: merge the release-please PR; `.github/workflows/release.yml` tags `vX.Y.Z` and
+  runs goreleaser (`.goreleaser.yaml`). Never tag by hand. Commit messages drive the
+  version, so keep them Conventional Commits.
