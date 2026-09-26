@@ -3,6 +3,7 @@ module github.com/jalet/recap
 go 1.26.7
 
 require (
+	github.com/alecthomas/kong v1.16.1
 	github.com/anthropics/anthropic-sdk-go v1.75.0
 	github.com/yuin/goldmark v1.8.6
 	go.yaml.in/yaml/v3 v3.0.5
