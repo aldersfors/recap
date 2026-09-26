@@ -7,6 +7,7 @@ lockfile_platforms = ["macos-arm64", "linux-x64"]
 [tools]
 go            = "1.26.7"
 golangci-lint = "2.13.2"
+goreleaser    = "2.18.2"
 
 [tasks.build]
 description = "Build the CLI into bin/recap"
