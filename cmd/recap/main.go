@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -15,6 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/jalet/recap/internal/activity"
 	"github.com/jalet/recap/internal/config"
@@ -26,77 +27,98 @@ import (
 // version is set at build time with -ldflags "-X main.version=...".
 var version = "dev"
 
-const usage = `Usage: recap <command> [flags]
+// cli is the command line: one field per subcommand.
+type cli struct {
+	Version    kong.VersionFlag `help:"Print the version and exit."`
+	Draft      draftCmd         `cmd:"" help:"Collect GitHub or GitLab activity and write issues/<week>/index.md."`
+	Render     renderCmd        `cmd:"" help:"Turn an issue into out/<week>/mattermost.md and email.html."`
+	VersionCmd versionCmd       `cmd:"" name:"version" help:"Print the version."`
+}
 
-Commands:
-  draft    collect GitHub or GitLab activity and write issues/<week>/index.md
-  render   turn an issue into out/<week>/mattermost.md and email.html
-  version  print the version
+type draftCmd struct {
+	Config string `default:"recap.yaml" help:"Config file."`
+	Issues string `default:"issues" help:"Folder holding one folder per week."`
+	Week   string `help:"ISO week to draft, e.g. 2026-W39 (default: the current week)."`
+	Weeks  int    `help:"How many weeks of activity to include, ending with --week (default: window_weeks from config)."`
+	NoAI   bool   `name:"no-ai" help:"Write a skeleton with the raw activity instead of asking Claude."`
+	Force  bool   `help:"Replace an existing index.md."`
+	Footer string `default:"footer.md" help:"Links section appended below the draft (skipped if missing)."`
+}
 
-Run 'recap <command> -h' for the flags of a command.
-`
+type renderCmd struct {
+	Issues      string `default:"issues" help:"Folder holding one folder per week."`
+	Out         string `default:"out" help:"Folder for rendered output."`
+	Week        string `help:"ISO week to render (default: the newest folder under --issues)."`
+	NoClipboard bool   `name:"no-clipboard" help:"Do not copy the Mattermost text to the clipboard."`
+}
+
+type versionCmd struct{}
+
+func (versionCmd) Run(k *kong.Context) error {
+	_, err := fmt.Fprintln(k.Stdout, "recap", version)
+	return err
+}
+
+// newParser builds the parser for c; ctx is handed to commands that need it.
+func newParser(ctx context.Context, c *cli, opts ...kong.Option) (*kong.Kong, error) {
+	return kong.New(c, append([]kong.Option{
+		kong.Name("recap"),
+		kong.Description("Draft and render a team's weekly update from GitHub or GitLab activity."),
+		kong.Vars{"version": "recap " + version},
+		kong.BindTo(ctx, (*context.Context)(nil)),
+	}, opts...)...)
+}
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprint(os.Stderr, usage)
-		os.Exit(2)
-	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	var err error
-	switch os.Args[1] {
-	case "draft":
-		err = runDraft(ctx, os.Args[2:])
-	case "render":
-		err = runRender(os.Args[2:])
-	case "version", "--version":
-		fmt.Println("recap", version)
-	case "-h", "--help", "help":
-		fmt.Print(usage)
-	default:
-		fmt.Fprintf(os.Stderr, "unknown command %q\n\n%s", os.Args[1], usage)
+	var c cli
+	parser, err := newParser(ctx, &c)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+	k, err := parser.Parse(os.Args[1:])
+	if err != nil {
+		var perr *kong.ParseError
+		if errors.As(err, &perr) {
+			_ = perr.Context.PrintUsage(true)
+			fmt.Fprintln(os.Stderr)
+		}
+		parser.Errorf("%s", err)
 		os.Exit(2)
 	}
-	if err != nil {
+	if err := k.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-func runDraft(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("draft", flag.ExitOnError)
-	cfgPath := fs.String("config", "recap.yaml", "config file")
-	issuesDir := fs.String("issues", "issues", "folder holding one folder per week")
-	weekFlag := fs.String("week", "", "ISO week to draft, e.g. 2026-W39 (default: the current week)")
-	weeks := fs.Int("weeks", 0, "how many weeks of activity to include, ending with -week (default: window_weeks from config)")
-	noAI := fs.Bool("no-ai", false, "write a skeleton with the raw activity instead of asking Claude")
-	force := fs.Bool("force", false, "replace an existing index.md")
-	footerPath := fs.String("footer", "footer.md", "links section appended below the draft (skipped if missing)")
-	_ = fs.Parse(args) // ExitOnError: Parse exits instead of returning an error
-
-	cfg, err := config.Load(*cfgPath)
+func (c *draftCmd) Run(ctx context.Context) error {
+	cfg, err := config.Load(c.Config)
 	if err != nil {
 		return err
 	}
-	if *weeks == 0 {
-		*weeks = cfg.WindowWeeks
+	weeks := c.Weeks
+	if weeks == 0 {
+		weeks = cfg.WindowWeeks
 	}
 	now := time.Now().UTC()
 	week := issue.WeekOf(now)
-	if *weekFlag != "" {
-		if week, err = issue.ParseWeek(*weekFlag); err != nil {
+	if c.Week != "" {
+		if week, err = issue.ParseWeek(c.Week); err != nil {
 			return err
 		}
 	}
-	from, to := week.Window(*weeks)
+	from, to := week.Window(weeks)
 	if to.After(now) {
 		to = now
 	}
 
-	dir := issue.Dir(*issuesDir, week)
+	dir := issue.Dir(c.Issues, week)
 	indexPath := filepath.Join(dir, "index.md")
-	if _, err := os.Stat(indexPath); err == nil && !*force {
+	if _, err := os.Stat(indexPath); err == nil && !c.Force {
 		return fmt.Errorf("%s: %w (use --force to replace it)", indexPath, issue.ErrExists)
 	}
 
@@ -128,7 +150,7 @@ func runDraft(ctx context.Context, args []string) error {
 		Period: fmt.Sprintf("%s to %s", from.Format(time.DateOnly), to.Add(-time.Nanosecond).Format(time.DateOnly)),
 	}
 	body := summarize.Skeleton(items)
-	if !*noAI {
+	if !c.NoAI {
 		provider, err := summarize.New(ctx, cfg.AI)
 		if err != nil {
 			return err
@@ -144,14 +166,14 @@ func runDraft(ctx context.Context, args []string) error {
 			return err
 		}
 		fmt.Fprintf(os.Stderr, "Closed in %s: %d tickets, %d epics.\n", cfg.GitHub.TicketsRepo, stats.Tickets, stats.Epics)
-		body = issue.WithStats(body, stats.Line(*weeks))
+		body = issue.WithStats(body, stats.Line(weeks))
 	}
-	footer, err := issue.ReadFooter(*footerPath)
+	footer, err := issue.ReadFooter(c.Footer)
 	if err != nil {
 		return err
 	}
 	body = issue.WithFooter(body, footer)
-	if err := issue.WriteNew(indexPath, fm.Render()+body, *force); err != nil {
+	if err := issue.WriteNew(indexPath, fm.Render()+body, c.Force); err != nil {
 		return err
 	}
 	fmt.Printf("Wrote %s\nEdit it, add media to %s, then run: recap render --week %s\n", indexPath, filepath.Join(dir, "media"), week)
@@ -217,25 +239,18 @@ func newCollector(cfg *config.Config) (activity.Collector, string, error) {
 	}, gh.Org, nil
 }
 
-func runRender(args []string) error {
-	fs := flag.NewFlagSet("render", flag.ExitOnError)
-	issuesDir := fs.String("issues", "issues", "folder holding one folder per week")
-	outDir := fs.String("out", "out", "folder for rendered output")
-	weekFlag := fs.String("week", "", "ISO week to render (default: the newest folder under -issues)")
-	noClipboard := fs.Bool("no-clipboard", false, "do not copy the Mattermost text to the clipboard")
-	_ = fs.Parse(args) // ExitOnError: Parse exits instead of returning an error
-
+func (c *renderCmd) Run() error {
 	var week issue.Week
 	var err error
-	if *weekFlag != "" {
-		week, err = issue.ParseWeek(*weekFlag)
+	if c.Week != "" {
+		week, err = issue.ParseWeek(c.Week)
 	} else {
-		week, err = issue.Latest(*issuesDir)
+		week, err = issue.Latest(c.Issues)
 	}
 	if err != nil {
 		return err
 	}
-	dir, err := filepath.Abs(issue.Dir(*issuesDir, week))
+	dir, err := filepath.Abs(issue.Dir(c.Issues, week))
 	if err != nil {
 		return err
 	}
@@ -248,7 +263,7 @@ func runRender(args []string) error {
 		return err
 	}
 
-	target := filepath.Join(*outDir, week.String())
+	target := filepath.Join(c.Out, week.String())
 	if err := os.MkdirAll(target, 0o755); err != nil {
 		return err
 	}
@@ -262,7 +277,7 @@ func runRender(args []string) error {
 	}
 
 	fmt.Printf("Mattermost: %s\nEmail:      %s (open in a browser, select all, paste into Outlook)\n", mmPath, emailPath)
-	if !*noClipboard {
+	if !c.NoClipboard {
 		if err := copyToClipboard(out.Mattermost); err == nil {
 			fmt.Println("Mattermost text copied to the clipboard.")
 		}

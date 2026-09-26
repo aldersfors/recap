@@ -65,7 +65,10 @@ em-dashes, lines over 80 columns and missing Milestones, Toil or Demo headings.
 |---------|-------|
 | `recap draft` | `--week 2026-W39` (default: current ISO week), `--weeks N` (default: `window_weeks`), `--no-ai` (skeleton with the raw activity), `--force` (replace an existing index.md), `--footer` (default `footer.md`; skipped if missing), `--config`, `--issues` |
 | `recap render` | `--week 2026-W39` (default: newest week folder), `--no-clipboard`, `--issues`, `--out` |
-| `recap version` | prints the version |
+| `recap version` | prints the version (also `recap --version`) |
+
+Flags take two dashes (`--week`); the single-dash form (`-week`) is rejected.
+`recap <command> --help` lists every flag with its default.
 
 The window runs from Monday 00:00 UTC of the first week to the end of the drafted week,
 or to now if that week is still in progress.
