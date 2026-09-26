@@ -1,0 +1,11 @@
+bin/
+out/
+dist/
+.DS_Store
+
+# Team-specific: each user keeps their own, see recap.example.yaml and
+# footer.example.md.
+recap.yaml
+footer.md
+issues/*
+!issues/.gitkeep
