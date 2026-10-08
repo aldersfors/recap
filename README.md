@@ -103,7 +103,10 @@ or to now if that week is still in progress.
   reports commits by email only, so direct commits match only an email in
   `include_authors`. `exclude_authors` (case-insensitive) and `exclude_bots` work as on GitHub; bots are
   project and group access-token users.
-- `ai.provider`: `anthropic` or `bedrock`. Switch back by changing this one value.
+- `ai.provider`: `anthropic`, `bedrock` or `converse`. Switch back by changing this one value.
+  `bedrock` serves Claude only and needs the account to have accepted the Anthropic
+  model agreement in AWS Marketplace. `converse` reaches any Bedrock text model, for
+  example `zai.glm-5`, through the Converse API; many of those need no Marketplace agreement.
 - `ai.anthropic.inference_geo`: optional `inference_geo` sent to the Claude API. Empty
   uses the API default (global). The draft step prints where inference ran.
 
@@ -114,7 +117,7 @@ Nothing secret goes in the config.
 | Service | Source |
 |---------|--------|
 | GitHub | `GITHUB_TOKEN`, else `gh auth token` |
-| Bedrock | AWS credential chain, e.g. `granted`/SSO profile, or `ai.bedrock.profile` |
+| Bedrock, Converse | AWS credential chain, e.g. `granted`/SSO profile, or `ai.bedrock.profile` / `ai.converse.profile` |
 | Anthropic API | `ANTHROPIC_API_KEY`, or an `ant auth login` profile |
 | GitLab | `GITLAB_TOKEN`, else `glab config get token --host <host>` (scope `read_api`) |
 
@@ -129,6 +132,12 @@ before it is written.
 
 - **Bedrock** uses the in-region `bedrock-mantle` endpoint in eu-north-1
   (Stockholm), so the model runs in the EU region.
+- **Converse** calls `bedrock-runtime` in the configured region. With a model offered
+  on demand there (check `aws bedrock list-foundation-models`), inference runs in that
+  region; a model reachable only through a cross-region inference profile can run in
+  other regions of that geography. AWS hosts the model, so a non-Anthropic model such
+  as `zai.glm-5` does not send the data to its model provider. VERIFY WITH LEGAL
+  COUNSEL before using a new model with real data.
 - **Anthropic API** sends the data to Anthropic, a third-party processor. With
   `inference_geo: global` the model may run outside the EU, which is a transfer under GDPR
   Chapter V (Articles 44-46, 2018-05-25). Before using it with real data, complete a vendor
@@ -150,7 +159,7 @@ go test ./internal/render -update   # rewrite golden files after an intended out
 ```
 
 Layout: `cmd/recap` (CLI), `internal/config`, `internal/activity` (GitHub, GitLab),
-`internal/summarize` (prompt in `prompt.md`, Anthropic and Bedrock providers),
+`internal/summarize` (prompt in `prompt.md`, Anthropic, Bedrock and Converse providers),
 `internal/issue` (ISO weeks, front matter), `internal/render`.
 
 ## CI and releases

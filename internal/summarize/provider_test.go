@@ -11,6 +11,9 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 )
 
 func fakeMessages(t *testing.T, stopReason, extra string) (*messagesProvider, *map[string]any) {
@@ -85,5 +88,64 @@ func TestMessagesProviderStopReasons(t *testing.T) {
 	p, _ = fakeMessages(t, "max_tokens", "")
 	if _, err := p.Complete(context.Background(), "s", "u"); err == nil || !strings.Contains(err.Error(), "max_tokens") {
 		t.Errorf("max_tokens err = %v", err)
+	}
+}
+
+type fakeConverse struct {
+	got  *bedrockruntime.ConverseInput
+	resp *bedrockruntime.ConverseOutput
+}
+
+func (f *fakeConverse) Converse(_ context.Context, in *bedrockruntime.ConverseInput, _ ...func(*bedrockruntime.Options)) (*bedrockruntime.ConverseOutput, error) {
+	f.got = in
+	return f.resp, nil
+}
+
+func converseReply(stop types.StopReason, blocks ...types.ContentBlock) *bedrockruntime.ConverseOutput {
+	return &bedrockruntime.ConverseOutput{
+		StopReason: stop,
+		Output: &types.ConverseOutputMemberMessage{Value: types.Message{
+			Role:    types.ConversationRoleAssistant,
+			Content: blocks,
+		}},
+	}
+}
+
+func TestConverseProviderRequestAndText(t *testing.T) {
+	api := &fakeConverse{resp: converseReply(types.StopReasonEndTurn,
+		&types.ContentBlockMemberReasoningContent{},
+		&types.ContentBlockMemberText{Value: "Draft "},
+		&types.ContentBlockMemberText{Value: "body"},
+	)}
+	p := &converseProvider{api: api, model: "zai.glm-5"}
+	text, err := p.Complete(context.Background(), "SYSTEM", "USER")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text != "Draft body" {
+		t.Errorf("text = %q", text)
+	}
+	if got := aws.ToString(api.got.ModelId); got != "zai.glm-5" {
+		t.Errorf("model = %q", got)
+	}
+	if sys, ok := api.got.System[0].(*types.SystemContentBlockMemberText); !ok || sys.Value != "SYSTEM" {
+		t.Errorf("system = %#v", api.got.System)
+	}
+	msg := api.got.Messages[0]
+	if user, ok := msg.Content[0].(*types.ContentBlockMemberText); msg.Role != types.ConversationRoleUser || !ok || user.Value != "USER" {
+		t.Errorf("messages = %#v", api.got.Messages)
+	}
+}
+
+func TestConverseProviderStopReasons(t *testing.T) {
+	for stop, want := range map[types.StopReason]string{
+		types.StopReasonMaxTokens:           "max_tokens",
+		types.StopReasonContentFiltered:     "declined",
+		types.StopReasonGuardrailIntervened: "declined",
+	} {
+		p := &converseProvider{api: &fakeConverse{resp: converseReply(stop)}, model: "m"}
+		if _, err := p.Complete(context.Background(), "s", "u"); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s err = %v", stop, err)
+		}
 	}
 }
