@@ -155,8 +155,12 @@ func (c *draftCmd) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		b := brief(cfg)
+		if b.Epics, err = epics(ctx, cfg, b, items); err != nil {
+			return err
+		}
 		fmt.Fprintf(os.Stderr, "Drafting with %s...\n", cfg.AI.Provider)
-		if body, err = summarize.Draft(ctx, provider, brief(cfg), fm, items); err != nil {
+		if body, err = summarize.Draft(ctx, provider, b, fm, items); err != nil {
 			return err
 		}
 	}
@@ -187,6 +191,26 @@ func brief(cfg *config.Config) summarize.Brief {
 		b.TicketRef = cfg.GitHub.Org + "/" + cfg.GitHub.TicketsRepo + "#123"
 	}
 	return b
+}
+
+// epics resolves the tickets the items reference to their epics, so the
+// draft can group the week's work by theme. Only GitHub with a tickets_repo
+// has tickets to resolve.
+func epics(ctx context.Context, cfg *config.Config, b summarize.Brief, items []activity.Item) (map[int]activity.Epic, error) {
+	if cfg.Forge != config.ForgeGitHub || cfg.GitHub.TicketsRepo == "" {
+		return nil, nil
+	}
+	tickets := b.Tickets(items)
+	if len(tickets) == 0 {
+		return nil, nil
+	}
+	token, err := activity.Token()
+	if err != nil {
+		return nil, err
+	}
+	found := activity.NewClient(token).Epics(ctx, cfg.GitHub.Org, cfg.GitHub.TicketsRepo, tickets)
+	fmt.Fprintf(os.Stderr, "Resolved %d of %d referenced tickets to their epics.\n", len(found), len(tickets))
+	return found, nil
 }
 
 // closedTickets counts the completed issues in github.tickets_repo for the
