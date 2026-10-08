@@ -46,7 +46,8 @@ gitlab:
 window_weeks: 1
 
 ai:
-  # anthropic (first-party Claude API) or bedrock (Bedrock Mantle endpoint).
+  # anthropic (first-party Claude API), bedrock (Claude on the Bedrock Mantle
+  # endpoint) or converse (any Bedrock text model through the Converse API).
   provider: anthropic
   anthropic:
     model: claude-opus-5-5
@@ -55,5 +56,11 @@ ai:
   bedrock:
     region: eu-north-1
     model: anthropic.claude-opus-5
+    # Optional AWS profile; empty uses the default credential chain.
+    profile: ""
+  converse:
+    region: eu-north-1
+    # Use a model offered ON_DEMAND in the region so inference stays there.
+    model: zai.glm-5
     # Optional AWS profile; empty uses the default credential chain.
     profile: ""
