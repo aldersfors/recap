@@ -269,21 +269,26 @@ func (c *renderCmd) Run() error {
 	}
 	mmPath := filepath.Join(target, "mattermost.md")
 	emailPath := filepath.Join(target, "email.html")
+	emlPath := filepath.Join(target, "email.eml")
 	if err := os.WriteFile(mmPath, []byte(out.Mattermost), 0o644); err != nil {
 		return err
 	}
 	if err := os.WriteFile(emailPath, []byte(out.Email), 0o644); err != nil {
 		return err
 	}
+	if err := os.WriteFile(emlPath, out.EML, 0o644); err != nil {
+		return err
+	}
 
 	fmt.Printf("Mattermost: %s\nEmail:      %s (open in a browser, select all, paste into Outlook)\n", mmPath, emailPath)
+	fmt.Printf("Draft:      %s (open in Outlook, address and send; videos are attached)\n", emlPath)
 	if !c.NoClipboard {
 		if err := copyToClipboard(out.Mattermost); err == nil {
 			fmt.Println("Mattermost text copied to the clipboard.")
 		}
 	}
 	if len(out.Media) > 0 {
-		fmt.Println("\nAttach these files to the Mattermost post (and videos to the email):")
+		fmt.Println("\nAttach these files to the Mattermost post (and videos to a pasted email):")
 		for _, m := range out.Media {
 			fmt.Println("  " + m)
 		}
