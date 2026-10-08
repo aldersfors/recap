@@ -1,7 +1,13 @@
 package render
 
 import (
+	"bytes"
+	"encoding/base64"
 	"flag"
+	"io"
+	"mime"
+	"mime/multipart"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"strings"
@@ -148,4 +154,112 @@ func TestEmailSectionsStaySmallerThanTitle(t *testing.T) {
 			t.Errorf("email missing %s", want)
 		}
 	}
+}
+
+// emlPart is one leaf of the parsed .eml.
+type emlPart struct {
+	contentType, disposition, cid, filename string
+	body                                    []byte
+}
+
+// readParts walks a multipart body, descending into nested multiparts. The
+// standard library decodes quoted-printable itself; base64 is decoded here.
+func readParts(t *testing.T, r io.Reader, boundary string) []emlPart {
+	t.Helper()
+	var parts []emlPart
+	mr := multipart.NewReader(r, boundary)
+	for {
+		p, err := mr.NextPart()
+		if err == io.EOF {
+			return parts
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		mt, params, err := mime.ParseMediaType(p.Header.Get("Content-Type"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.HasPrefix(mt, "multipart/") {
+			parts = append(parts, readParts(t, p, params["boundary"])...)
+			continue
+		}
+		body, err := io.ReadAll(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if p.Header.Get("Content-Transfer-Encoding") == "base64" {
+			if body, err = io.ReadAll(base64Decoder(body)); err != nil {
+				t.Fatal(err)
+			}
+		}
+		disp, dparams, _ := mime.ParseMediaType(p.Header.Get("Content-Disposition"))
+		parts = append(parts, emlPart{
+			contentType: mt, disposition: disp, filename: dparams["filename"],
+			cid: strings.Trim(p.Header.Get("Content-Id"), "<>"), body: body,
+		})
+	}
+}
+
+func TestEMLDraft(t *testing.T) {
+	out, dir := renderFixture(t)
+	msg, err := mail.ReadMessage(bytes.NewReader(out.EML))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := new(mime.WordDecoder).DecodeHeader(msg.Header.Get("Subject")); got != "Platform recap 2026-W39" {
+		t.Errorf("Subject = %q", got)
+	}
+	if msg.Header.Get("X-Unsent") != "1" {
+		t.Error("X-Unsent is not set, so Outlook would not open the file as a draft")
+	}
+	mt, params, err := mime.ParseMediaType(msg.Header.Get("Content-Type"))
+	if err != nil || mt != "multipart/mixed" {
+		t.Fatalf("Content-Type = %q, %v", mt, err)
+	}
+	parts := readParts(t, msg.Body, params["boundary"])
+
+	var html string
+	inline := map[string]emlPart{}
+	var attached []string
+	for _, p := range parts {
+		switch {
+		case p.contentType == "text/html":
+			html = string(p.body)
+		case p.disposition == "inline":
+			inline[p.cid] = p
+		case p.disposition == "attachment":
+			attached = append(attached, p.filename)
+			want, _ := os.ReadFile(filepath.Join(dir, "media", p.filename))
+			if !bytes.Equal(p.body, want) {
+				t.Errorf("%s body = %q, want %q", p.filename, p.body, want)
+			}
+		}
+	}
+	for cid, file := range map[string]string{"media-1@recap": "login.png", "media-2@recap": "tour.gif"} {
+		if !strings.Contains(html, `src="cid:`+cid+`"`) {
+			t.Errorf("html does not reference cid:%s", cid)
+		}
+		p, ok := inline[cid]
+		want, _ := os.ReadFile(filepath.Join(dir, "media", file))
+		if !ok || p.filename != file || !bytes.Equal(p.body, want) {
+			t.Errorf("inline %s = %+v, want %s", cid, p, file)
+		}
+	}
+	if len(inline) != 2 {
+		t.Errorf("inline parts = %d, want 2", len(inline))
+	}
+	if strings.Join(attached, ",") != "tour.mp4,alerts.mov" {
+		t.Errorf("attachments = %v", attached)
+	}
+	if !strings.Contains(html, `src="https://status.example.com/badge.png"`) {
+		t.Error("remote image was not left as a link")
+	}
+	if strings.Contains(html, "file://") || strings.Contains(html, "data:") {
+		t.Error("the .eml html points at local files or data: URLs instead of cid:")
+	}
+}
+
+func base64Decoder(b []byte) io.Reader {
+	return base64.NewDecoder(base64.StdEncoding, bytes.NewReader(b))
 }
