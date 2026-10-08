@@ -35,7 +35,7 @@ team's details and activity, not the tool's.
 mise run draft                 # collect this week's activity, write issues/<week>/index.md
 $EDITOR issues/2026-W39/index.md
 cp ~/Desktop/demo.png issues/2026-W39/media/   # reference it as ![caption](media/demo.png)
-mise run render                # write out/<week>/mattermost.md and email.html
+mise run render                # write out/<week>/mattermost.md, email.html and email.eml
 ```
 
 1. **Draft.** `recap draft` collects merged PRs, and commits pushed straight to the
@@ -51,10 +51,14 @@ mise run render                # write out/<week>/mattermost.md and email.html
 3. **Render and send.** `recap render` then covers both channels:
    - **Mattermost**: the text is on the clipboard (or in `out/<week>/mattermost.md`).
      Paste it into the post and attach the media files it lists.
-   - **Outlook**: open `out/<week>/email.html` in a browser, select all, copy, and paste
-     into a new message. Images come along. Outlook cannot play video, so a video shows
-     its sibling `.gif` when there is one (`demo.mp4` + `demo.gif`), otherwise a caption.
-     Attach the video file itself.
+   - **Outlook, draft**: open `out/<week>/email.eml`. It opens as an unsent message
+     with the images inline and the videos attached; address it and send.
+   - **Outlook, paste**: or open `out/<week>/email.html` in a browser (from disk, not
+     through a local web server), select all, copy, and paste into a new message. The
+     images are embedded in the page, so they come along. Attach videos yourself.
+
+   Mail clients cannot play video, so a video shows its sibling `.gif` when there is
+   one (`demo.mp4` + `demo.gif`), otherwise a caption.
 
 `render` warns about leftover `TODO`s, unreplaced MEDIA comments, missing media files,
 em-dashes, lines over 80 columns and missing Milestones, Toil or Demo headings.
