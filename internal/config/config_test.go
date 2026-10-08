@@ -60,6 +60,8 @@ func TestParseInvalid(t *testing.T) {
 		{"unknown provider", "github: {org: o, repos: [a]}\nai: {provider: openai}", "ai.provider"},
 		{"anthropic without model", "github: {org: o, repos: [a]}\nai: {provider: anthropic}", "ai.anthropic.model"},
 		{"bedrock without region", "github: {org: o, repos: [a]}\nai: {provider: bedrock, bedrock: {model: m}}", "ai.bedrock.region"},
+		{"converse without region", "github: {org: o, repos: [a]}\nai: {provider: converse, converse: {model: m}}", "ai.converse.region"},
+		{"converse without model", "github: {org: o, repos: [a]}\nai: {provider: converse, converse: {region: eu-north-1}}", "ai.converse.model"},
 		{"negative window", "github: {org: o, repos: [a]}\nwindow_weeks: -1\nai: {provider: anthropic, anthropic: {model: m}}", "window_weeks"},
 		{"unknown forge", "forge: bitbucket\ngithub: {org: o, repos: [a]}\nai: {provider: anthropic, anthropic: {model: m}}", "forge"},
 		{"gitlab without group", "forge: gitlab\ngitlab: {projects: [a]}\nai: {provider: anthropic, anthropic: {model: m}}", "gitlab.group"},

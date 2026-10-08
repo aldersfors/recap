@@ -1,5 +1,5 @@
 // Package config loads recap.yaml: which GitHub or GitLab repos to scan and which
-// Claude backend drafts the summary. Credentials never live in this file.
+// model backend drafts the summary. Credentials never live in this file.
 package config
 
 import (
@@ -20,6 +20,7 @@ const (
 const (
 	ProviderAnthropic = "anthropic"
 	ProviderBedrock   = "bedrock"
+	ProviderConverse  = "converse"
 )
 
 type Config struct {
@@ -65,6 +66,7 @@ type AI struct {
 	Provider  string    `yaml:"provider"`
 	Anthropic Anthropic `yaml:"anthropic"`
 	Bedrock   Bedrock   `yaml:"bedrock"`
+	Converse  Bedrock   `yaml:"converse"`
 }
 
 type Anthropic struct {
@@ -73,6 +75,8 @@ type Anthropic struct {
 	InferenceGeo string `yaml:"inference_geo"`
 }
 
+// Bedrock configures both Bedrock providers: bedrock (Anthropic models on the
+// Mantle endpoint) and converse (any model through the Converse API).
 type Bedrock struct {
 	Region  string `yaml:"region"`
 	Model   string `yaml:"model"`
@@ -161,8 +165,15 @@ func (c *Config) validate() error {
 		if c.AI.Bedrock.Model == "" {
 			errs = append(errs, errors.New("ai.bedrock.model is required"))
 		}
+	case ProviderConverse:
+		if c.AI.Converse.Region == "" {
+			errs = append(errs, errors.New("ai.converse.region is required"))
+		}
+		if c.AI.Converse.Model == "" {
+			errs = append(errs, errors.New("ai.converse.model is required"))
+		}
 	default:
-		errs = append(errs, fmt.Errorf("ai.provider must be %q or %q, got %q", ProviderAnthropic, ProviderBedrock, c.AI.Provider))
+		errs = append(errs, fmt.Errorf("ai.provider must be %q, %q or %q, got %q", ProviderAnthropic, ProviderBedrock, ProviderConverse, c.AI.Provider))
 	}
 	return errors.Join(errs...)
 }
