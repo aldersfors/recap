@@ -2,6 +2,7 @@ package summarize
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -142,5 +143,63 @@ func TestDraftFillsInTheTeam(t *testing.T) {
 	}
 	if strings.Contains(p.system, "{{") {
 		t.Errorf("system prompt has an unfilled placeholder:\n%s", p.system)
+	}
+}
+
+func TestTicketsFindsBothReferenceForms(t *testing.T) {
+	got := brief.Tickets([]activity.Item{
+		{Title: "Add widget (acme/project#11)"},
+		{Title: "Fix widget", Body: "Part of https://github.com/acme/project/issues/12 and ACME/project#11."},
+		{Title: "Unrelated", Body: "Fixes acme/other#5 and #7."},
+	})
+	if want := []int{11, 12}; !slices.Equal(got, want) {
+		t.Errorf("Tickets = %v, want %v", got, want)
+	}
+}
+
+func TestUserMessageGroupsByEpicLargestFirst(t *testing.T) {
+	b := brief
+	b.Epics = map[int]activity.Epic{
+		11: {Ref: "acme/project#1", Title: "Parent epic"},
+		12: {Ref: "acme/project#1", Title: "Parent epic"},
+	}
+	at := time.Date(2026, 9, 22, 0, 0, 0, 0, time.UTC)
+	got := userMessage(b, fm, []activity.Item{
+		{Repo: "web", Kind: activity.KindPR, Title: "Untracked change", At: at},
+		{Repo: "web", Kind: activity.KindPR, Title: "Ticket change", Body: "acme/project#30", At: at},
+		{Repo: "web", Kind: activity.KindPR, Title: "Epic change one", Body: "acme/project#11", At: at},
+		{Repo: "web", Kind: activity.KindPR, Title: "Epic change two", Body: "See acme/project#99 and acme/project#12.", At: at},
+	})
+	epic := strings.Index(got, "## Epic acme/project#1: Parent epic (2 items)")
+	ticket := strings.Index(got, "## Ticket acme/project#30 (1 items)")
+	loose := strings.Index(got, "## Other, no ticket (1 items)")
+	if epic < 0 || ticket < 0 || loose < 0 {
+		t.Fatalf("missing a group header:\n%s", got)
+	}
+	if epic > ticket || ticket > loose {
+		t.Errorf("groups out of order (epic %d, ticket %d, loose %d):\n%s", epic, ticket, loose, got)
+	}
+	// The second item refers first to an unresolved ticket, then to one under
+	// the epic: the epic wins.
+	if i := strings.Index(got, "Epic change two"); i < epic || i > ticket {
+		t.Errorf("item with a resolvable ticket was not grouped under its epic:\n%s", got)
+	}
+}
+
+func TestUserMessageGroupsUntrackedWorkByScope(t *testing.T) {
+	got := userMessage(brief, fm, []activity.Item{
+		{Repo: "web", Kind: activity.KindPR, Title: "feat(api): add endpoint"},
+		{Repo: "web", Kind: activity.KindPR, Title: "Fix(API): handle errors"},
+		{Repo: "web", Kind: activity.KindPR, Title: "fix(ui): one-off"},
+		{Repo: "web", Kind: activity.KindPR, Title: "Bump deps"},
+	})
+	scope := strings.Index(got, "## Scope api, no ticket (2 items)")
+	other := strings.Index(got, "## Other, no ticket (2 items)")
+	if scope < 0 || other < scope {
+		t.Fatalf("want an api scope group before the rest:\n%s", got)
+	}
+	// A scope used once is not a theme: it joins the rest.
+	if i := strings.Index(got, "fix(ui): one-off"); i < other {
+		t.Errorf("single-item scope got its own group:\n%s", got)
 	}
 }

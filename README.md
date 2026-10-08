@@ -40,7 +40,10 @@ mise run render                # write out/<week>/mattermost.md, email.html and 
 
 1. **Draft.** `recap draft` collects merged PRs, and commits pushed straight to the
    default branch, from the repos in `recap.yaml`. It saves them to
-   `issues/<week>/activity.json` and asks Claude for a draft in `issues/<week>/index.md`.
+   `issues/<week>/activity.json` and asks the model for a draft in `issues/<week>/index.md`.
+   The model sees the activity grouped by theme, largest first: by the epic each
+   referenced `github.tickets_repo` ticket rolls up to, then untracked work by commit
+   scope (`feat(<scope>): ...`). Linking PRs to tickets keeps related work together.
    The draft has a `##` headline and an executive summary, then `### Milestones`
    (finished epic work: items that reference a ticket in `github.tickets_repo`),
    `### Toil` (smaller upkeep) and `### Demo` (the week's biggest result, with a
