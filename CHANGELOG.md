@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0](https://github.com/aldersfors/recap/compare/v0.2.0...v0.3.0) (2026-10-09)
+## [0.3.0](https://github.com/aldersfors/recap/compare/v0.2.0...c228b27915da0a3835c8ca13a9f0590317df7138) (2026-10-09)
 
 
 ### Features
