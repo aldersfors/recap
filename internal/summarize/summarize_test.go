@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jalet/recap/internal/activity"
-	"github.com/jalet/recap/internal/issue"
+	"github.com/aldersfors/recap/internal/activity"
+	"github.com/aldersfors/recap/internal/issue"
 )
 
 type fakeProvider struct {

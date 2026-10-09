@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 
-	"github.com/jalet/recap/internal/config"
+	"github.com/aldersfors/recap/internal/config"
 )
 
 // New builds the provider named in the config. Anthropic reads its

@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jalet/recap/internal/activity"
-	"github.com/jalet/recap/internal/issue"
+	"github.com/aldersfors/recap/internal/activity"
+	"github.com/aldersfors/recap/internal/issue"
 )
 
 //go:embed prompt.md

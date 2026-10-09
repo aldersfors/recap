@@ -39,7 +39,7 @@ changelog:
 
 release:
   github:
-    owner: jalet
+    owner: aldersfors
     name: recap
   draft: false
   prerelease: auto
