@@ -23,7 +23,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	gmhtml "github.com/yuin/goldmark/renderer/html"
 
-	"github.com/jalet/recap/internal/issue"
+	"github.com/aldersfors/recap/internal/issue"
 )
 
 type Output struct {

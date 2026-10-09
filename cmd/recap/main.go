@@ -17,11 +17,11 @@ import (
 
 	"github.com/alecthomas/kong"
 
-	"github.com/jalet/recap/internal/activity"
-	"github.com/jalet/recap/internal/config"
-	"github.com/jalet/recap/internal/issue"
-	"github.com/jalet/recap/internal/render"
-	"github.com/jalet/recap/internal/summarize"
+	"github.com/aldersfors/recap/internal/activity"
+	"github.com/aldersfors/recap/internal/config"
+	"github.com/aldersfors/recap/internal/issue"
+	"github.com/aldersfors/recap/internal/render"
+	"github.com/aldersfors/recap/internal/summarize"
 )
 
 // version is set at build time with -ldflags "-X main.version=...".

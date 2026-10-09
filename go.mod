@@ -1,4 +1,4 @@
-module github.com/jalet/recap
+module github.com/aldersfors/recap
 
 go 1.26.7
 

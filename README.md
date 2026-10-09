@@ -11,12 +11,12 @@ the edited issue into a Mattermost post and an email you can paste into Outlook.
 ## Install
 
 Download the binary for your platform from the
-[releases](https://github.com/jalet/recap/releases) page, or build from source:
+[releases](https://github.com/aldersfors/recap/releases) page, or build from source:
 
 ```sh
-gh release download --repo jalet/recap --pattern '*darwin_arm64*'   # private repo
+gh release download --repo aldersfors/recap --pattern '*darwin_arm64*'   # private repo
 # or
-git clone git@github.com:jalet/recap.git && cd recap && mise run build   # bin/recap
+git clone git@github.com:aldersfors/recap.git && cd recap && mise run build   # bin/recap
 ```
 
 ## Set up
