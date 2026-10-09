@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/aldersfors/recap/compare/v0.3.0...v0.3.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **release:** publish assets before the release goes immutable ([#14](https://github.com/aldersfors/recap/issues/14)) ([0cf86f5](https://github.com/aldersfors/recap/commit/0cf86f5e8d245be0e45684f864a4b4d1981b379f))
+
 ## [0.3.0](https://github.com/aldersfors/recap/compare/v0.2.0...c228b27915da0a3835c8ca13a9f0590317df7138) (2026-10-09)
 
 
