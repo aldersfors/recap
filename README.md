@@ -14,7 +14,7 @@ Download the binary for your platform from the
 [releases](https://github.com/aldersfors/recap/releases) page, or build from source:
 
 ```sh
-gh release download --repo aldersfors/recap --pattern '*darwin_arm64*'   # private repo
+gh release download --repo aldersfors/recap --pattern '*darwin_arm64*'
 # or
 git clone git@github.com:aldersfors/recap.git && cd recap && mise run build   # bin/recap
 ```
@@ -182,6 +182,10 @@ push to `main` release-please updates an open release PR with the next version a
 and runs goreleaser to attach the archives and `checksums.txt`. Never tag by hand.
 
 release-please acts as the release GitHub App, so its PRs run CI like any other PR.
-The repo needs the variable `RELEASE_APP_CLIENT_ID` and the secret
-`RELEASE_APP_PRIVATE_KEY`, and the app must be installed on this repo with read and
-write access to contents and pull requests.
+The release workflow reads the secrets `RELEASE_APP_CLIENT_ID` and
+`RELEASE_APP_PRIVATE_KEY` (repo or org level), and the app must be installed on this
+repo with read and write access to contents and pull requests.
+
+## License
+
+[Apache-2.0](LICENSE).

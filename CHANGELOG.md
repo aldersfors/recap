@@ -5,11 +5,11 @@
 
 ### Features
 
-* **render:** embed email images and write an .eml draft ([717f95d](https://github.com/aldersfors/recap/commit/717f95d696b07bab3a4f1e4d9280812c66ff99c1))
-* **summarize:** add Bedrock Converse provider ([c1f96c2](https://github.com/aldersfors/recap/commit/c1f96c23499cf1377103f698d6af3fca935e074a))
-* **summarize:** group the week's activity by epic and scope ([1cbf2b9](https://github.com/aldersfors/recap/commit/1cbf2b9bc2eece8e169cb55dcc2df33dabf00d94))
+* **render:** embed email images and write an .eml draft ([d7df804](https://github.com/aldersfors/recap/commit/d7df804b56b265b12068e07e2d6f86be67196aba))
+* **summarize:** add Bedrock Converse provider ([a49066f](https://github.com/aldersfors/recap/commit/a49066ff1eb99fe3555753c39fee7b773b834b70))
+* **summarize:** group the week's activity by epic and scope ([adbc5f6](https://github.com/aldersfors/recap/commit/adbc5f6032522f22702b0b6c3017fed1f57272f9))
 
-## [0.2.0](https://github.com/jalet/recap/compare/v0.1.0...v0.2.0) (2026-09-26)
+## [0.2.0](https://github.com/aldersfors/recap/compare/v0.1.0...v0.2.0) (2026-09-26)
 
 
 ### ⚠ BREAKING CHANGES
@@ -18,4 +18,4 @@
 
 ### Features
 
-* **cli:** move command parsing to Kong ([6a88d59](https://github.com/jalet/recap/commit/6a88d598c849a8502afea13127278ef91f9ce6c3))
+* **cli:** move command parsing to Kong ([4cc643f](https://github.com/aldersfors/recap/commit/4cc643f5b1a75ebf0ab5519f6c7177191261e597))
