@@ -37,6 +37,8 @@ checksum:
 changelog:
   disable: true
 
+# release-please opens the release as a draft; goreleaser attaches the archives and
+# publishes it. The org enforces immutable releases, so assets must land before publish.
 release:
   github:
     owner: aldersfors
