@@ -19,9 +19,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	gmhtml "github.com/yuin/goldmark/renderer/html"
+	"github.com/yuin/goldmark/v2/extension"
+	"github.com/yuin/goldmark/v2/parser"
+	gmhtml "github.com/yuin/goldmark/v2/renderer/html"
 
 	"github.com/aldersfors/recap/internal/issue"
 )
@@ -182,12 +182,14 @@ func email(dir string, fm issue.FrontMatter, body string, src func(path string) 
 		return caption
 	})
 
-	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM),
-		goldmark.WithRendererOptions(gmhtml.WithUnsafe()), // allows data:, cid: and file:// image URLs
+	source := []byte(tidy(body))
+	doc := parser.New(parser.WithExtensions(extension.GFMParser)).Parse(source)
+	r := gmhtml.New(
+		gmhtml.WithExtensions(extension.GFMHTMLRenderer),
+		gmhtml.WithUnsafe(), // allows data:, cid: and file:// image URLs
 	)
 	var buf bytes.Buffer
-	if err := md.Convert([]byte(tidy(body)), &buf); err != nil {
+	if err := r.Render(&buf, source, doc); err != nil {
 		return "", err
 	}
 	content := strings.NewReplacer(
