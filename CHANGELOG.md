@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.2](https://github.com/aldersfors/recap/compare/v0.3.1...v0.3.2) (2026-10-11)
+
+
+### Bug Fixes
+
+* **deps:** migrate render to goldmark v2 ([#19](https://github.com/aldersfors/recap/issues/19)) ([912063a](https://github.com/aldersfors/recap/commit/912063a301e132f3cf2aa82315d9fea69ef845c8))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.78.0 ([#14](https://github.com/aldersfors/recap/issues/14)) ([593ecfa](https://github.com/aldersfors/recap/commit/593ecfaaea55785d0bc9e5c8df7edac5cc212c22))
+* **deps:** update module github.com/yuin/goldmark to v2 ([#17](https://github.com/aldersfors/recap/issues/17)) ([56fc7d2](https://github.com/aldersfors/recap/commit/56fc7d23f340a8b700ad2c4525c8987deefc14bd))
+
 ## [0.3.1](https://github.com/aldersfors/recap/compare/v0.3.0...v0.3.1) (2026-10-09)
 
 
