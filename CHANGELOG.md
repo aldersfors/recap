@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/aldersfors/recap/compare/v0.3.3...v0.4.0) (2026-10-20)
+
+
+### Features
+
+* **activity:** add Plane as ticket and activity source ([#37](https://github.com/aldersfors/recap/issues/37)) ([4eb672e](https://github.com/aldersfors/recap/commit/4eb672e195efcc7d8c4a3c306806f9e81b87bf9c))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.81.0 ([#30](https://github.com/aldersfors/recap/issues/30)) ([425dead](https://github.com/aldersfors/recap/commit/425dead65cce60aa19ad44941c527552b5600cd9))
+
 ## [0.3.3](https://github.com/aldersfors/recap/compare/v0.3.2...v0.3.3) (2026-10-15)
 
 
