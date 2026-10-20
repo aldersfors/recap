@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/alecthomas/kong"
+
+	"github.com/aldersfors/recap/internal/config"
 )
 
 type exited int
@@ -93,5 +95,16 @@ func TestParseErrors(t *testing.T) {
 		if _, _, _, err := parse(t, args...); err == nil {
 			t.Errorf("parse %q: want an error", args)
 		}
+	}
+}
+
+func TestBriefTicketSource(t *testing.T) {
+	cfg := &config.Config{Forge: config.ForgeGitHub, GitHub: config.GitHub{Org: "acme", TicketsRepo: "project"}}
+	if b := brief(cfg); b.TicketRef != "acme/project#123" || b.PlaneProjects != nil {
+		t.Errorf("github brief = %+v", b)
+	}
+	cfg = &config.Config{Forge: config.ForgeGitLab, Plane: config.Plane{Workspace: "acme", Projects: []string{"eng", "ops"}}}
+	if b := brief(cfg); b.TicketRef != "ENG-123" || len(b.PlaneProjects) != 2 {
+		t.Errorf("plane brief = %+v", b)
 	}
 }

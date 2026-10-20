@@ -51,6 +51,35 @@ func TestParseValid(t *testing.T) {
 	}
 }
 
+func TestParsePlane(t *testing.T) {
+	cfg, err := Parse(strings.NewReader(`
+forge: gitlab
+gitlab: {group: g, projects: [a]}
+plane:
+  base_url: https://plane.example.com
+  workspace: acme
+  projects: [ENG, OPS]
+  include_members: [alice@example.com]
+ai: {provider: anthropic, anthropic: {model: m}}
+`))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if !cfg.Plane.Enabled() || len(cfg.Plane.Projects) != 2 || cfg.Plane.IncludeMembers[0] != "alice@example.com" {
+		t.Errorf("plane = %+v", cfg.Plane)
+	}
+	if strings.Contains(valid, "plane") {
+		t.Fatal("valid must stay without plane")
+	}
+	cfg, err = Parse(strings.NewReader(valid))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Plane.Enabled() {
+		t.Error("plane enabled without a workspace")
+	}
+}
+
 func TestParseInvalid(t *testing.T) {
 	tests := []struct {
 		name, yaml, wantErr string
@@ -69,6 +98,10 @@ func TestParseInvalid(t *testing.T) {
 		{"gitlab http base_url", "forge: gitlab\ngitlab: {group: g, projects: [a], base_url: \"http://git.corp\"}\nai: {provider: anthropic, anthropic: {model: m}}", "gitlab.base_url"},
 		{"gitlab relative base_url", "forge: gitlab\ngitlab: {group: g, projects: [a], base_url: git.corp}\nai: {provider: anthropic, anthropic: {model: m}}", "gitlab.base_url"},
 		{"tickets_repo without a team", "github: {org: o, repos: [a], tickets_repo: project}\nai: {provider: anthropic, anthropic: {model: m}}", "github.tickets_repo"},
+		{"plane without base_url", "github: {org: o, repos: [a]}\nplane: {workspace: acme, projects: [ENG], include_members: [alice@example.com]}\nai: {provider: anthropic, anthropic: {model: m}}", "plane.base_url"},
+		{"plane without projects", "github: {org: o, repos: [a]}\nplane: {base_url: \"https://plane.example.com\", workspace: acme, include_members: [alice@example.com]}\nai: {provider: anthropic, anthropic: {model: m}}", "plane.projects"},
+		{"plane without members", "github: {org: o, repos: [a]}\nplane: {base_url: \"https://plane.example.com\", workspace: acme, projects: [ENG]}\nai: {provider: anthropic, anthropic: {model: m}}", "plane.include_members"},
+		{"plane and tickets_repo", "github: {org: o, repos: [a], include_authors: [x], tickets_repo: project}\nplane: {base_url: \"https://plane.example.com\", workspace: acme, projects: [ENG], include_members: [alice@example.com]}\nai: {provider: anthropic, anthropic: {model: m}}", "not both"},
 		{"unknown field", "github: {org: o, repos: [a], repoz: [b]}\nai: {provider: anthropic, anthropic: {model: m}}", "repoz"},
 	}
 	for _, tt := range tests {

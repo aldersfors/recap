@@ -35,12 +35,12 @@ func TestEpics(t *testing.T) {
 	t.Cleanup(srv.Close)
 	c := &Client{BaseURL: srv.URL, Token: "tok", HTTP: srv.Client()}
 
-	got := c.Epics(context.Background(), "acme", "project", []int{11, 12, 1, 20, 404})
-	want := map[int]Epic{
-		11: {Ref: "acme/project#1", Title: "Parent epic"},
-		12: {Ref: "acme/project#1", Title: "Parent epic"},
-		1:  {Ref: "acme/project#1", Title: "Parent epic"},
-		20: {Ref: "acme/project#20", Title: "Standalone task"},
+	got := c.Epics(context.Background(), []string{"acme/project#11", "acme/project#12", "acme/project#1", "acme/project#20", "acme/project#404"})
+	want := map[string]Epic{
+		"acme/project#11": {Ref: "acme/project#1", Title: "Parent epic"},
+		"acme/project#12": {Ref: "acme/project#1", Title: "Parent epic"},
+		"acme/project#1":  {Ref: "acme/project#1", Title: "Parent epic"},
+		"acme/project#20": {Ref: "acme/project#20", Title: "Standalone task"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Epics = %v, want %v", got, want)

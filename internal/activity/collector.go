@@ -1,6 +1,6 @@
 // Package activity collects what the team shipped in a time window: merged
 // pull or merge requests, plus commits pushed straight to the default branch,
-// from GitHub or GitLab.
+// from GitHub or GitLab, and work items completed in Plane.
 package activity
 
 import (
@@ -21,6 +21,7 @@ const (
 	KindPR     = "pr"
 	KindMR     = "mr"
 	KindCommit = "commit"
+	KindTicket = "ticket" // a work item completed in Plane
 )
 
 type Item struct {

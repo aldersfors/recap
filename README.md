@@ -5,7 +5,8 @@ actually shipped: a headline, a short summary, milestones, toil, one demo, and a
 standing links footer.
 
 `recap draft` collects the week's merged pull or merge requests and direct commits from
-GitHub or GitLab, and has Claude draft `issues/<week>/index.md`. `recap render` turns
+GitHub or GitLab, plus the tickets completed in Plane when the team tracks work there,
+and has Claude draft `issues/<week>/index.md`. `recap render` turns
 the edited issue into a Mattermost post and an email you can paste into Outlook.
 
 ## Install
@@ -110,6 +111,15 @@ or to now if that week is still in progress.
   reports commits by email only, so direct commits match only an email in
   `include_authors`. `exclude_authors` (case-insensitive) and `exclude_bots` work as on GitHub; bots are
   project and group access-token users.
+- `plane.base_url`, `plane.workspace`, `plane.projects`, `plane.include_members`:
+  optional, with either forge. Set `workspace` to make Plane the ticket tracker in
+  place of `github.tickets_repo` (one or the other). Work items in `projects` (by
+  identifier, such as `ENG`) that moved to a completed state in the window and are
+  assigned to one of `include_members` (emails) join the activity as `ticket` items,
+  and are counted into the stats line, with work items of an epic type as epics.
+  PRs, MRs and commits that mention a work item ID such as `ENG-12` are grouped under
+  that item's epic, together with the completed work items of the same epic.
+  Cancelled, unassigned and archived work items never count.
 - `ai.provider`: `anthropic`, `bedrock` or `converse`. Switch back by changing this one value.
   `bedrock` serves Claude only and needs the account to have accepted the Anthropic
   model agreement in AWS Marketplace. `converse` reaches any Bedrock text model, for
@@ -127,14 +137,18 @@ Nothing secret goes in the config.
 | Bedrock, Converse | AWS credential chain, e.g. `granted`/SSO profile, or `ai.bedrock.profile` / `ai.converse.profile` |
 | Anthropic API | `ANTHROPIC_API_KEY`, or an `ant auth login` profile |
 | GitLab | `GITLAB_TOKEN`, else `glab config get token --host <host>` (scope `read_api`) |
+| Plane | `PLANE_API_KEY`, a personal access token from Plane's profile settings |
 
 ## Data handling
 
-The draft step sends PR titles, bodies (each capped at 1500 characters) and commit
-messages to the model. They can contain names and internal details. Author names
+The draft step sends PR titles, bodies (each capped at 1500 characters), commit
+messages and, with Plane, completed work item titles and descriptions to the model. They can contain names and internal details. Author names
 are personal data under GDPR Article 4(1) (2018-05-25). No author is sent to the model,
-and `Signed-off-by`-style trailers are stripped from bodies first. `activity.json` keeps
-author logins so the draft can be checked against it; GitLab commit emails are dropped
+and `Signed-off-by`-style trailers are stripped from bodies first. Work item assignees are
+not sent either, but a description can still name people, so check what the team
+writes in tickets before using a new provider. `activity.json` keeps
+author logins, and the assignee's Plane display name for work items, so the draft can
+be checked against it; GitLab commit emails are dropped
 before it is written.
 
 - **Bedrock** uses the in-region `bedrock-mantle` endpoint in eu-north-1
@@ -159,13 +173,13 @@ before it is written.
 ## Development
 
 ```sh
-mise run test     # unit tests; the GitHub and GitLab clients run against fake API servers
+mise run test     # unit tests; the GitHub, GitLab and Plane clients run against fake API servers
 mise run lint
 mise run release-check   # goreleaser build of all platforms into dist/, no publish
 go test ./internal/render -update   # rewrite golden files after an intended output change
 ```
 
-Layout: `cmd/recap` (CLI), `internal/config`, `internal/activity` (GitHub, GitLab),
+Layout: `cmd/recap` (CLI), `internal/config`, `internal/activity` (GitHub, GitLab, Plane),
 `internal/summarize` (prompt in `prompt.md`, Anthropic, Bedrock and Converse providers),
 `internal/issue` (ISO weeks, front matter), `internal/render`.
 

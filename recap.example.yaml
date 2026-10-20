@@ -42,6 +42,18 @@ gitlab:
   exclude_authors: []
   exclude_bots: true
 
+# Optional: Plane as the ticket tracker, with either forge. Leave workspace
+# empty to turn it off. Work items completed in the window join the activity
+# and the italic stats line; PRs and commits that reference one, such as
+# ENG-12, are grouped under its epic. Replaces github.tickets_repo.
+plane:
+  base_url: https://plane.example.com
+  workspace: ""
+  # Project identifiers, the prefix of each work item ID.
+  projects: [ENG]
+  # Emails of the members whose completed work items count.
+  include_members: []
+
 # Weeks of activity per draft, ending with the drafted week. Override with --weeks.
 window_weeks: 1
 

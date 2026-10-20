@@ -11,21 +11,25 @@ import (
 // Epic is the issue a ticket rolls up to: its nearest ancestor of type Epic,
 // or the topmost ancestor when none is typed Epic.
 type Epic struct {
-	Ref   string // owner/repo#number
+	Ref   string // owner/repo#number on GitHub, ENG-12 on Plane
 	Title string
 }
 
 // maxParentDepth bounds the walk up the sub-issue tree.
 const maxParentDepth = 4
 
-// Epics resolves each ticket in owner/repo to its epic. A ticket that cannot
-// be fetched is left out, so a missing permission weakens the grouping of the
-// draft instead of failing it.
-func (c *Client) Epics(ctx context.Context, owner, repo string, numbers []int) map[int]Epic {
+// Epics resolves each ticket reference, owner/repo#number, to its epic. A
+// ticket that cannot be fetched is left out, so a missing permission weakens
+// the grouping of the draft instead of failing it.
+func (c *Client) Epics(ctx context.Context, refs []string) map[string]Epic {
 	cache := map[string]issueNode{}
-	epics := map[int]Epic{}
-	for _, n := range numbers {
-		path := fmt.Sprintf("/repos/%s/%s/issues/%d", owner, repo, n)
+	epics := map[string]Epic{}
+	for _, ref := range refs {
+		repo, n, ok := strings.Cut(ref, "#")
+		if !ok || !strings.Contains(repo, "/") {
+			continue
+		}
+		path := fmt.Sprintf("/repos/%s/issues/%s", repo, n)
 		node, err := c.issue(ctx, path, cache)
 		if err != nil {
 			continue
@@ -37,7 +41,7 @@ func (c *Client) Epics(ctx context.Context, owner, repo string, numbers []int) m
 			}
 			node = parent
 		}
-		epics[n] = Epic{Ref: node.ref, Title: node.Title}
+		epics[ref] = Epic{Ref: node.ref, Title: node.Title}
 	}
 	return epics
 }
