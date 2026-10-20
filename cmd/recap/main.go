@@ -1,5 +1,5 @@
 // Command recap drafts and renders a team's weekly update from GitHub or GitLab
-// activity.
+// activity and, optionally, the tickets completed in Plane.
 package main
 
 import (
@@ -30,7 +30,7 @@ var version = "dev"
 // cli is the command line: one field per subcommand.
 type cli struct {
 	Version    kong.VersionFlag `help:"Print the version and exit."`
-	Draft      draftCmd         `cmd:"" help:"Collect GitHub or GitLab activity and write issues/<week>/index.md."`
+	Draft      draftCmd         `cmd:"" help:"Collect GitHub or GitLab activity and Plane tickets, and write issues/<week>/index.md."`
 	Render     renderCmd        `cmd:"" help:"Turn an issue into out/<week>/mattermost.md and email.html."`
 	VersionCmd versionCmd       `cmd:"" name:"version" help:"Print the version."`
 }
@@ -63,7 +63,7 @@ func (versionCmd) Run(k *kong.Context) error {
 func newParser(ctx context.Context, c *cli, opts ...kong.Option) (*kong.Kong, error) {
 	return kong.New(c, append([]kong.Option{
 		kong.Name("recap"),
-		kong.Description("Draft and render a team's weekly update from GitHub or GitLab activity."),
+		kong.Description("Draft and render a team's weekly update from GitHub or GitLab activity and Plane tickets."),
 		kong.Vars{"version": "recap " + version},
 		kong.BindTo(ctx, (*context.Context)(nil)),
 	}, opts...)...)
@@ -132,6 +132,24 @@ func (c *draftCmd) Run(ctx context.Context) error {
 		return err
 	}
 	fmt.Fprintf(os.Stderr, "Found %d items.\n", len(items))
+	var plane *activity.Plane
+	var completed []activity.PlaneItem
+	if cfg.Plane.Enabled() {
+		if plane, err = newPlane(cfg); err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stderr, "Collecting completed Plane work items from %s...\n", strings.Join(cfg.Plane.Projects, ", "))
+		completed, err = plane.Completed(ctx, activity.PlaneQuery{
+			Projects: cfg.Plane.Projects, IncludeMembers: cfg.Plane.IncludeMembers, From: from, To: to,
+		})
+		if err != nil {
+			return err
+		}
+		for _, it := range completed {
+			items = append(items, it.Item)
+		}
+		fmt.Fprintf(os.Stderr, "Found %d completed work items.\n", len(completed))
+	}
 
 	if err := os.MkdirAll(filepath.Join(dir, "media"), 0o755); err != nil {
 		return err
@@ -156,7 +174,7 @@ func (c *draftCmd) Run(ctx context.Context) error {
 			return err
 		}
 		b := brief(cfg)
-		if b.Epics, err = epics(ctx, cfg, b, items); err != nil {
+		if b.Epics, err = epics(ctx, cfg, plane, b, items); err != nil {
 			return err
 		}
 		fmt.Fprintf(os.Stderr, "Drafting with %s...\n", cfg.AI.Provider)
@@ -164,7 +182,11 @@ func (c *draftCmd) Run(ctx context.Context) error {
 			return err
 		}
 	}
-	if cfg.Forge == config.ForgeGitHub && cfg.GitHub.TicketsRepo != "" {
+	if plane != nil {
+		stats := activity.PlaneStats(completed)
+		fmt.Fprintf(os.Stderr, "Completed in Plane: %d tickets, %d epics.\n", stats.Tickets, stats.Epics)
+		body = issue.WithStats(body, stats.Line(weeks))
+	} else if cfg.Forge == config.ForgeGitHub && cfg.GitHub.TicketsRepo != "" {
 		stats, err := closedTickets(ctx, cfg, from, to)
 		if err != nil {
 			return err
@@ -187,28 +209,38 @@ func (c *draftCmd) Run(ctx context.Context) error {
 // brief carries the team and ticket format from cfg into the prompt.
 func brief(cfg *config.Config) summarize.Brief {
 	b := summarize.Brief{Team: cfg.Team.Name, Audience: cfg.Team.Audience}
-	if cfg.Forge == config.ForgeGitHub && cfg.GitHub.TicketsRepo != "" {
+	switch {
+	case cfg.Plane.Enabled():
+		b.TicketRef = strings.ToUpper(cfg.Plane.Projects[0]) + "-123"
+		b.PlaneProjects = cfg.Plane.Projects
+	case cfg.Forge == config.ForgeGitHub && cfg.GitHub.TicketsRepo != "":
 		b.TicketRef = cfg.GitHub.Org + "/" + cfg.GitHub.TicketsRepo + "#123"
 	}
 	return b
 }
 
 // epics resolves the tickets the items reference to their epics, so the
-// draft can group the week's work by theme. Only GitHub with a tickets_repo
-// has tickets to resolve.
-func epics(ctx context.Context, cfg *config.Config, b summarize.Brief, items []activity.Item) (map[int]activity.Epic, error) {
-	if cfg.Forge != config.ForgeGitHub || cfg.GitHub.TicketsRepo == "" {
-		return nil, nil
-	}
+// draft can group the week's work by theme. The tickets live in Plane when
+// plane is set, else in github.tickets_repo; with neither there is nothing to
+// resolve.
+func epics(ctx context.Context, cfg *config.Config, plane *activity.Plane, b summarize.Brief, items []activity.Item) (map[string]activity.Epic, error) {
 	tickets := b.Tickets(items)
 	if len(tickets) == 0 {
 		return nil, nil
 	}
-	token, err := activity.Token()
-	if err != nil {
-		return nil, err
+	var found map[string]activity.Epic
+	switch {
+	case plane != nil:
+		found = plane.Epics(ctx, tickets)
+	case cfg.Forge == config.ForgeGitHub && cfg.GitHub.TicketsRepo != "":
+		token, err := activity.Token()
+		if err != nil {
+			return nil, err
+		}
+		found = activity.NewClient(token).Epics(ctx, tickets)
+	default:
+		return nil, nil
 	}
-	found := activity.NewClient(token).Epics(ctx, cfg.GitHub.Org, cfg.GitHub.TicketsRepo, tickets)
 	fmt.Fprintf(os.Stderr, "Resolved %d of %d referenced tickets to their epics.\n", len(found), len(tickets))
 	return found, nil
 }
@@ -225,6 +257,15 @@ func closedTickets(ctx context.Context, cfg *config.Config, from, to time.Time) 
 		Org: gh.Org, IncludeTeams: gh.IncludeTeams, IncludeAuthors: gh.IncludeAuthors,
 		From: from, To: to,
 	}, gh.TicketsRepo)
+}
+
+// newPlane returns the client for the configured Plane workspace.
+func newPlane(cfg *config.Config) (*activity.Plane, error) {
+	token, err := activity.PlaneToken()
+	if err != nil {
+		return nil, err
+	}
+	return activity.NewPlane(cfg.Plane.BaseURL, cfg.Plane.Workspace, token), nil
 }
 
 // newCollector returns the collector for cfg.Forge and a label for progress output.

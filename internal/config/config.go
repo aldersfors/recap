@@ -1,5 +1,6 @@
-// Package config loads recap.yaml: which GitHub or GitLab repos to scan and which
-// model backend drafts the summary. Credentials never live in this file.
+// Package config loads recap.yaml: which GitHub or GitLab repos to scan, which
+// Plane projects hold the tickets, and which model backend drafts the summary.
+// Credentials never live in this file.
 package config
 
 import (
@@ -28,6 +29,7 @@ type Config struct {
 	Forge       string `yaml:"forge"`
 	GitHub      GitHub `yaml:"github"`
 	GitLab      GitLab `yaml:"gitlab"`
+	Plane       Plane  `yaml:"plane"`
 	WindowWeeks int    `yaml:"window_weeks"`
 	AI          AI     `yaml:"ai"`
 }
@@ -61,6 +63,20 @@ type GitLab struct {
 	ExcludeAuthors []string `yaml:"exclude_authors"`
 	ExcludeBots    bool     `yaml:"exclude_bots"`
 }
+
+// Plane, when Workspace is set, is the ticket tracker: work items completed in
+// the window join the activity and the stats line, and references such as
+// ENG-12 group the forge activity by epic. It works with either forge.
+type Plane struct {
+	BaseURL   string   `yaml:"base_url"`
+	Workspace string   `yaml:"workspace"`
+	Projects  []string `yaml:"projects"`
+	// IncludeMembers are the emails whose completed work items count.
+	IncludeMembers []string `yaml:"include_members"`
+}
+
+// Enabled reports whether a Plane workspace is configured.
+func (p Plane) Enabled() bool { return p.Workspace != "" }
 
 type AI struct {
 	Provider  string    `yaml:"provider"`
@@ -149,6 +165,20 @@ func (c *Config) validate() error {
 		}
 	default:
 		errs = append(errs, fmt.Errorf("forge must be %q or %q, got %q", ForgeGitHub, ForgeGitLab, c.Forge))
+	}
+	if c.Plane.Enabled() {
+		if u, err := url.Parse(c.Plane.BaseURL); err != nil || u.Scheme != "https" || u.Host == "" {
+			errs = append(errs, fmt.Errorf("plane.base_url must be an absolute https URL, got %q", c.Plane.BaseURL))
+		}
+		if len(c.Plane.Projects) == 0 {
+			errs = append(errs, errors.New("plane.projects must list at least one project identifier"))
+		}
+		if len(c.Plane.IncludeMembers) == 0 {
+			errs = append(errs, errors.New("plane counts only work items assigned to the team, so it needs plane.include_members"))
+		}
+		if c.Forge == ForgeGitHub && c.GitHub.TicketsRepo != "" {
+			errs = append(errs, errors.New("set either github.tickets_repo or plane, not both: there is one ticket source"))
+		}
 	}
 	if c.WindowWeeks < 1 {
 		errs = append(errs, errors.New("window_weeks must be 1 or more"))

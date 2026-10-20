@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/aldersfors/recap/internal/activity"
@@ -39,15 +38,26 @@ type Provider interface {
 type Brief struct {
 	Team      string // e.g. "Operations"
 	Audience  string // e.g. "the whole organization"
-	TicketRef string // e.g. "acme/project#123"
-	// Epics maps a ticket number in the TicketRef repo to its epic. Items are
+	TicketRef string // e.g. "acme/project#123", or "ENG-123" on Plane
+	// PlaneProjects, when set, makes the tickets Plane work items referenced as
+	// ENG-12 for these project identifiers, instead of issues in TicketRef's repo.
+	PlaneProjects []string
+	// Epics maps a ticket reference, as refs returns it, to its epic. Items are
 	// grouped by epic in the user message; unresolved tickets group by ticket.
-	Epics map[int]activity.Epic
+	Epics map[string]activity.Epic
 }
 
-// ticketPattern matches references to tickets in the TicketRef repo, written
-// as owner/repo#123 or as an issue URL. Nil when TicketRef names no repo.
+// ticketPattern matches ticket references: on Plane ENG-12 for the
+// configured projects, else owner/repo#123 or an issue URL in the TicketRef
+// repo. Nil when there is no ticket source.
 func (b Brief) ticketPattern() *regexp.Regexp {
+	if len(b.PlaneProjects) > 0 {
+		idents := make([]string, len(b.PlaneProjects))
+		for i, p := range b.PlaneProjects {
+			idents[i] = regexp.QuoteMeta(p)
+		}
+		return regexp.MustCompile(`(?i)\b(` + strings.Join(idents, "|") + `)-(\d+)\b`)
+	}
 	repo, _, ok := strings.Cut(b.TicketRef, "#")
 	if !ok || !strings.Contains(repo, "/") {
 		return nil
@@ -55,28 +65,40 @@ func (b Brief) ticketPattern() *regexp.Regexp {
 	return regexp.MustCompile(`(?i)` + regexp.QuoteMeta(repo) + `(?:#|/issues/)(\d+)`)
 }
 
-// refs lists the ticket numbers an item references, in order of appearance.
-func (b Brief) refs(it activity.Item) []int {
+// refs lists the tickets an item references, in order of appearance, written
+// as ENG-12 on Plane or owner/repo#12 on GitHub. A Plane work item refers to
+// itself first.
+func (b Brief) refs(it activity.Item) []string {
+	var out []string
+	if it.Kind == activity.KindTicket {
+		out = append(out, fmt.Sprintf("%s-%d", strings.ToUpper(it.Repo), it.Number))
+	}
 	re := b.ticketPattern()
 	if re == nil {
-		return nil
+		return out
 	}
-	var out []int
 	for _, m := range re.FindAllStringSubmatch(it.Title+"\n"+it.Body, -1) {
-		if n, err := strconv.Atoi(m[1]); err == nil && !slices.Contains(out, n) {
-			out = append(out, n)
+		var ref string
+		if len(b.PlaneProjects) > 0 {
+			ref = strings.ToUpper(m[1]) + "-" + m[2]
+		} else {
+			repo, _, _ := strings.Cut(b.TicketRef, "#")
+			ref = repo + "#" + m[1]
+		}
+		if !slices.Contains(out, ref) {
+			out = append(out, ref)
 		}
 	}
 	return out
 }
 
 // Tickets lists every ticket the items reference, for resolving Epics.
-func (b Brief) Tickets(items []activity.Item) []int {
-	var out []int
+func (b Brief) Tickets(items []activity.Item) []string {
+	var out []string
 	for _, it := range items {
-		for _, n := range b.refs(it) {
-			if !slices.Contains(out, n) {
-				out = append(out, n)
+		for _, ref := range b.refs(it) {
+			if !slices.Contains(out, ref) {
+				out = append(out, ref)
 			}
 		}
 	}
@@ -148,9 +170,9 @@ func groups(b Brief, items []activity.Item) []group {
 	var other []activity.Item
 	for _, it := range items {
 		if refs := b.refs(it); len(refs) > 0 {
-			kind, ref, title := groupTicket, fmt.Sprintf("%s#%d", strings.SplitN(b.TicketRef, "#", 2)[0], refs[0]), ""
-			for _, n := range refs {
-				if e, ok := b.Epics[n]; ok {
+			kind, ref, title := groupTicket, refs[0], ""
+			for _, r := range refs {
+				if e, ok := b.Epics[r]; ok {
 					kind, ref, title = groupEpic, e.Ref, e.Title
 					break
 				}
@@ -247,7 +269,7 @@ func Skeleton(items []activity.Item) string {
 	b.WriteString("<!-- MEDIA: add ![caption](media/file.png) or media/file.mp4 for the demo -->\n\n")
 	b.WriteString("<!-- Raw activity below: turn it into the bullets above, then delete this list. -->\n\n")
 	if len(items) == 0 {
-		b.WriteString("- No merged PRs or direct commits in this window.\n")
+		b.WriteString("- No merged PRs, direct commits or completed tickets in this window.\n")
 	}
 	for _, it := range items {
 		ref := "commit"
@@ -256,6 +278,8 @@ func Skeleton(items []activity.Item) string {
 			ref = fmt.Sprintf("#%d", it.Number)
 		case activity.KindMR:
 			ref = fmt.Sprintf("!%d", it.Number)
+		case activity.KindTicket:
+			ref = fmt.Sprintf("%s-%d", it.Repo, it.Number)
 		}
 		fmt.Fprintf(&b, "- %s: %s ([%s](%s))\n", it.Repo, it.Title, ref, it.URL)
 	}

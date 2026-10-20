@@ -152,16 +152,16 @@ func TestTicketsFindsBothReferenceForms(t *testing.T) {
 		{Title: "Fix widget", Body: "Part of https://github.com/acme/project/issues/12 and ACME/project#11."},
 		{Title: "Unrelated", Body: "Fixes acme/other#5 and #7."},
 	})
-	if want := []int{11, 12}; !slices.Equal(got, want) {
+	if want := []string{"acme/project#11", "acme/project#12"}; !slices.Equal(got, want) {
 		t.Errorf("Tickets = %v, want %v", got, want)
 	}
 }
 
 func TestUserMessageGroupsByEpicLargestFirst(t *testing.T) {
 	b := brief
-	b.Epics = map[int]activity.Epic{
-		11: {Ref: "acme/project#1", Title: "Parent epic"},
-		12: {Ref: "acme/project#1", Title: "Parent epic"},
+	b.Epics = map[string]activity.Epic{
+		"acme/project#11": {Ref: "acme/project#1", Title: "Parent epic"},
+		"acme/project#12": {Ref: "acme/project#1", Title: "Parent epic"},
 	}
 	at := time.Date(2026, 9, 22, 0, 0, 0, 0, time.UTC)
 	got := userMessage(b, fm, []activity.Item{
@@ -183,6 +183,29 @@ func TestUserMessageGroupsByEpicLargestFirst(t *testing.T) {
 	// the epic: the epic wins.
 	if i := strings.Index(got, "Epic change two"); i < epic || i > ticket {
 		t.Errorf("item with a resolvable ticket was not grouped under its epic:\n%s", got)
+	}
+}
+
+func TestPlaneTicketsAndSelfReference(t *testing.T) {
+	b := Brief{Team: "Platform", Audience: "everyone", TicketRef: "ENG-123", PlaneProjects: []string{"ENG", "OPS"}}
+	in := []activity.Item{
+		{Repo: "web", Kind: activity.KindPR, Title: "Add widget (eng-11)", Body: "Also OPS-3, not acme/project#4 or LENGTH-5."},
+		{Repo: "ENG", Kind: activity.KindTicket, Number: 12, Title: "Ship the widget"},
+	}
+	if got, want := b.Tickets(in), []string{"ENG-11", "ENG-12", "OPS-3"}; !slices.Equal(got, want) {
+		t.Errorf("Tickets = %v, want %v", got, want)
+	}
+	// The PR and the completed work item share an epic, so they share a group.
+	b.Epics = map[string]activity.Epic{
+		"ENG-11": {Ref: "ENG-1", Title: "Widget epic"},
+		"ENG-12": {Ref: "ENG-1", Title: "Widget epic"},
+	}
+	got := userMessage(b, fm, in)
+	if !strings.Contains(got, "## Epic ENG-1: Widget epic (2 items)") || !strings.Contains(got, "- [ticket] ENG: Ship the widget") {
+		t.Errorf("work item not grouped with the PR under its epic:\n%s", got)
+	}
+	if sk := Skeleton(in[1:]); !strings.Contains(sk, "- ENG: Ship the widget ([ENG-12](") {
+		t.Errorf("skeleton = %q, want an ENG-12 reference", sk)
 	}
 }
 
