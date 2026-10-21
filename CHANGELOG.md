@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/aldersfors/recap/compare/v0.4.0...v0.4.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.82.0 ([#38](https://github.com/aldersfors/recap/issues/38)) ([c399972](https://github.com/aldersfors/recap/commit/c399972dda98d715aa8de97935c1b0ef3a5e7549))
+
 ## [0.4.0](https://github.com/aldersfors/recap/compare/v0.3.3...v0.4.0) (2026-10-20)
 
 
