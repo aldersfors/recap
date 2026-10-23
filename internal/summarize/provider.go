@@ -19,7 +19,8 @@ import (
 
 // New builds the provider named in the config. Anthropic reads its
 // credentials from ANTHROPIC_API_KEY or an `ant auth login` profile; Bedrock
-// and Converse use the AWS credential chain, or the named profile when one is set.
+// and Converse use the AWS credential chain, or the named profile when one is set;
+// claude-code runs the claude CLI, which uses CLAUDE_CODE_OAUTH_TOKEN or its login.
 func New(ctx context.Context, cfg config.AI) (Provider, error) {
 	switch cfg.Provider {
 	case config.ProviderAnthropic:
@@ -49,6 +50,8 @@ func New(ctx context.Context, cfg config.AI) (Provider, error) {
 			return nil, fmt.Errorf("converse client: %w", err)
 		}
 		return &converseProvider{api: bedrockruntime.NewFromConfig(awsCfg), model: cfg.Converse.Model}, nil
+	case config.ProviderClaudeCode:
+		return &claudeCodeProvider{run: execClaude, model: cfg.ClaudeCode.Model, log: os.Stderr}, nil
 	}
 	return nil, fmt.Errorf("unknown provider %q", cfg.Provider)
 }

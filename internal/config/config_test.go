@@ -121,6 +121,23 @@ func TestTopicsOnlyIsValid(t *testing.T) {
 	}
 }
 
+func TestClaudeCodeConfig(t *testing.T) {
+	cfg, err := Parse(strings.NewReader("github: {org: o, repos: [a]}\nai: {provider: claude-code}"))
+	if err != nil {
+		t.Fatalf("Parse without model: %v", err)
+	}
+	if cfg.AI.ClaudeCode.Model != "" {
+		t.Errorf("model = %q", cfg.AI.ClaudeCode.Model)
+	}
+	cfg, err = Parse(strings.NewReader("github: {org: o, repos: [a]}\nai: {provider: claude-code, claude_code: {model: m}}"))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if cfg.AI.ClaudeCode.Model != "m" {
+		t.Errorf("model = %q", cfg.AI.ClaudeCode.Model)
+	}
+}
+
 func TestGitLabConfig(t *testing.T) {
 	cfg, err := Parse(strings.NewReader(`
 forge: gitlab
