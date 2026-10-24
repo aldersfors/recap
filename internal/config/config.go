@@ -19,9 +19,10 @@ const (
 )
 
 const (
-	ProviderAnthropic = "anthropic"
-	ProviderBedrock   = "bedrock"
-	ProviderConverse  = "converse"
+	ProviderAnthropic  = "anthropic"
+	ProviderBedrock    = "bedrock"
+	ProviderConverse   = "converse"
+	ProviderClaudeCode = "claude-code"
 )
 
 type Config struct {
@@ -79,16 +80,23 @@ type Plane struct {
 func (p Plane) Enabled() bool { return p.Workspace != "" }
 
 type AI struct {
-	Provider  string    `yaml:"provider"`
-	Anthropic Anthropic `yaml:"anthropic"`
-	Bedrock   Bedrock   `yaml:"bedrock"`
-	Converse  Bedrock   `yaml:"converse"`
+	Provider   string     `yaml:"provider"`
+	Anthropic  Anthropic  `yaml:"anthropic"`
+	Bedrock    Bedrock    `yaml:"bedrock"`
+	Converse   Bedrock    `yaml:"converse"`
+	ClaudeCode ClaudeCode `yaml:"claude_code"`
 }
 
 type Anthropic struct {
 	Model string `yaml:"model"`
 	// InferenceGeo is sent as inference_geo. Empty uses the API default (global).
 	InferenceGeo string `yaml:"inference_geo"`
+}
+
+// ClaudeCode drafts through the claude CLI. Model is optional; empty uses the
+// CLI default.
+type ClaudeCode struct {
+	Model string `yaml:"model"`
 }
 
 // Bedrock configures both Bedrock providers: bedrock (Anthropic models on the
@@ -202,8 +210,9 @@ func (c *Config) validate() error {
 		if c.AI.Converse.Model == "" {
 			errs = append(errs, errors.New("ai.converse.model is required"))
 		}
+	case ProviderClaudeCode:
 	default:
-		errs = append(errs, fmt.Errorf("ai.provider must be %q, %q or %q, got %q", ProviderAnthropic, ProviderBedrock, ProviderConverse, c.AI.Provider))
+		errs = append(errs, fmt.Errorf("ai.provider must be %q, %q, %q or %q, got %q", ProviderAnthropic, ProviderBedrock, ProviderConverse, ProviderClaudeCode, c.AI.Provider))
 	}
 	return errors.Join(errs...)
 }

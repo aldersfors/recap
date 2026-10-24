@@ -120,10 +120,13 @@ or to now if that week is still in progress.
   PRs, MRs and commits that mention a work item ID such as `ENG-12` are grouped under
   that item's epic, together with the completed work items of the same epic.
   Cancelled, unassigned and archived work items never count.
-- `ai.provider`: `anthropic`, `bedrock` or `converse`. Switch back by changing this one value.
+- `ai.provider`: `anthropic`, `bedrock`, `converse` or `claude-code`. Switch back by changing this one value.
   `bedrock` serves Claude only and needs the account to have accepted the Anthropic
   model agreement in AWS Marketplace. `converse` reaches any Bedrock text model, for
   example `zai.glm-5`, through the Converse API; many of those need no Marketplace agreement.
+  `claude-code` runs the `claude` CLI in print mode with no tools, so it can use a Claude
+  subscription through `claude setup-token` instead of an API key.
+- `ai.claude_code.model`: optional model passed to `claude --model`. Empty uses the CLI default.
 - `ai.anthropic.inference_geo`: optional `inference_geo` sent to the Claude API. Empty
   uses the API default (global). The draft step prints where inference ran.
 
@@ -136,6 +139,7 @@ Nothing secret goes in the config.
 | GitHub | `GITHUB_TOKEN`, else `gh auth token` |
 | Bedrock, Converse | AWS credential chain, e.g. `granted`/SSO profile, or `ai.bedrock.profile` / `ai.converse.profile` |
 | Anthropic API | `ANTHROPIC_API_KEY`, or an `ant auth login` profile |
+| Claude Code | `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token`, else the `claude` login. `ANTHROPIC_API_KEY` is not passed to the CLI |
 | GitLab | `GITLAB_TOKEN`, else `glab config get token --host <host>` (scope `read_api`) |
 | Plane | `PLANE_API_KEY`, a personal access token from Plane's profile settings |
 
@@ -165,6 +169,11 @@ before it is written.
   assessment and have a DPA with a valid transfer mechanism (for example SCCs, GDPR
   Article 46(2)(c)) in place, per GDPR Article 28 (2018-05-25) and NIS2 Article 21(2)(d)
   (2024-10-17). VERIFY WITH LEGAL COUNSEL.
+- **Claude Code** sends the same data to Anthropic through the `claude` CLI, with the same
+  Chapter V considerations as the Anthropic API. Which terms apply depends on the
+  account behind the token: a Pro or Max subscription is under Anthropic's consumer
+  terms, not the commercial terms and DPA that cover the API, Team and Enterprise. Use a
+  commercial account for real team data. VERIFY WITH LEGAL COUNSEL.
 
 > This document provides technical guidance based on published regulatory frameworks. It
 > does not constitute legal advice. Consult qualified legal counsel for compliance
@@ -180,7 +189,7 @@ go test ./internal/render -update   # rewrite golden files after an intended out
 ```
 
 Layout: `cmd/recap` (CLI), `internal/config`, `internal/activity` (GitHub, GitLab, Plane),
-`internal/summarize` (prompt in `prompt.md`, Anthropic, Bedrock and Converse providers),
+`internal/summarize` (prompt in `prompt.md`, Anthropic, Bedrock, Converse and Claude Code providers),
 `internal/issue` (ISO weeks, front matter), `internal/render`.
 
 ## CI and releases
