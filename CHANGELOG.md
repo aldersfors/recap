@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/aldersfors/recap/compare/v0.4.1...v0.5.0) (2026-10-24)
+
+
+### Features
+
+* **summarize:** add claude-code provider ([#42](https://github.com/aldersfors/recap/issues/42)) ([e36f8e1](https://github.com/aldersfors/recap/commit/e36f8e1426e86330ce2bef3ba53e1f6ef4f85aa8))
+
 ## [0.4.1](https://github.com/aldersfors/recap/compare/v0.4.0...v0.4.1) (2026-10-21)
 
 
