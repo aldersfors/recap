@@ -18,8 +18,8 @@ description = "Run all Go tests"
 run = "go test ./..."
 
 [tasks.lint]
-description = "go vet + golangci-lint"
-run = ["go vet ./...", "golangci-lint run ./..."]
+description = "go mod tidy check + go vet + golangci-lint"
+run = ["go mod tidy -diff", "go vet ./...", "golangci-lint run ./..."]
 
 [tasks.draft]
 description = "Draft this week's issue (pass flags after --, e.g. mise run draft -- --no-ai)"
