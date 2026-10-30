@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.1](https://github.com/aldersfors/recap/compare/v0.5.0...v0.5.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deps:** update aws-sdk-go-v2 monorepo ([#54](https://github.com/aldersfors/recap/issues/54)) ([678eebf](https://github.com/aldersfors/recap/commit/678eebf7cdd3ee2dab38e17e10f83255089deedc))
+* **deps:** update aws-sdk-go-v2 monorepo ([#56](https://github.com/aldersfors/recap/issues/56)) ([72faafb](https://github.com/aldersfors/recap/commit/72faafb76805f74616c68db68703448c0358461a))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.84.0 ([#47](https://github.com/aldersfors/recap/issues/47)) ([38b18fa](https://github.com/aldersfors/recap/commit/38b18fab62abc2a206753b5bc295dc80261e3f0e))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v2 ([#52](https://github.com/aldersfors/recap/issues/52)) ([f0854e1](https://github.com/aldersfors/recap/commit/f0854e199bbc20544506f97ceb58b2777a9e33bc))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v2 ([#53](https://github.com/aldersfors/recap/issues/53)) ([88569d4](https://github.com/aldersfors/recap/commit/88569d47234096942359802bc3e7f422da5c12c4))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v2 ([#58](https://github.com/aldersfors/recap/issues/58)) ([acf8770](https://github.com/aldersfors/recap/commit/acf87702fcf475917160d910a27806620b9742c6))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.2.0 ([#55](https://github.com/aldersfors/recap/issues/55)) ([f93cfbe](https://github.com/aldersfors/recap/commit/f93cfbe222d1b30204133cb1cbdcd08b01c4f4b3))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.3.0 ([#61](https://github.com/aldersfors/recap/issues/61)) ([ed0e993](https://github.com/aldersfors/recap/commit/ed0e993c143eddd03f2696886142681cb5110032))
+* **deps:** update module github.com/aws/aws-sdk-go-v2/service/bedrockruntime to v1.63.5 ([#45](https://github.com/aldersfors/recap/issues/45)) ([3644643](https://github.com/aldersfors/recap/commit/3644643a70142c8671006b0582f5b3b01435b07b))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.7 ([#48](https://github.com/aldersfors/recap/issues/48)) ([7c07151](https://github.com/aldersfors/recap/commit/7c07151caeb9e87d68e5f01d3a5ffdf2235941a8))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.8 ([#51](https://github.com/aldersfors/recap/issues/51)) ([efa490c](https://github.com/aldersfors/recap/commit/efa490ce13f6d5ef9948397f3089c0daf4436aba))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.9 ([#63](https://github.com/aldersfors/recap/issues/63)) ([83940e3](https://github.com/aldersfors/recap/commit/83940e3a7760163d8feabcc8f52855e9d53eba4b))
+
 ## [0.5.0](https://github.com/aldersfors/recap/compare/v0.4.1...v0.5.0) (2026-10-24)
 
 
