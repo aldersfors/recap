@@ -3,7 +3,7 @@ module github.com/aldersfors/recap
 go 1.26.7
 
 require (
-	github.com/alecthomas/kong v1.16.1
+	github.com/alecthomas/kong v1.17.0
 	github.com/anthropics/anthropic-sdk-go/v2 v2.4.0
 	github.com/aws/aws-sdk-go-v2 v1.47.5
 	github.com/aws/aws-sdk-go-v2/config v1.33.12
