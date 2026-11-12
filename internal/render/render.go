@@ -183,9 +183,9 @@ func email(dir string, fm issue.FrontMatter, body string, src func(path string) 
 	})
 
 	source := []byte(tidy(body))
-	doc := parser.New(parser.WithExtensions(extension.GFMParser)).Parse(source)
+	doc := parser.New(parser.WithExtensions(extension.NewGFMParser())).Parse(source)
 	r := gmhtml.New(
-		gmhtml.WithExtensions(extension.GFMHTMLRenderer),
+		gmhtml.WithExtensions(extension.NewGFMHTMLRenderer()),
 		gmhtml.WithUnsafe(), // allows data:, cid: and file:// image URLs
 	)
 	var buf bytes.Buffer
