@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.47.8
 	github.com/aws/aws-sdk-go-v2/config v1.33.16
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.63.12
-	github.com/yuin/goldmark/v2 v2.1.13
+	github.com/yuin/goldmark/v2 v2.1.15
 	go.yaml.in/yaml/v4 v4.0.0
 )
 
