@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.5.2](https://github.com/aldersfors/recap/compare/v0.5.1...v0.5.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update aws-sdk-go-v2 monorepo ([#67](https://github.com/aldersfors/recap/issues/67)) ([843aeec](https://github.com/aldersfors/recap/commit/843aeeca10bb4f46baee257164df34ea2c2ccfa1))
+* **deps:** update aws-sdk-go-v2 monorepo ([#72](https://github.com/aldersfors/recap/issues/72)) ([04e28a5](https://github.com/aldersfors/recap/commit/04e28a5662894c8ff8c0d232f8ed29feae35e252))
+* **deps:** update aws-sdk-go-v2 monorepo ([#81](https://github.com/aldersfors/recap/issues/81)) ([abc2cb3](https://github.com/aldersfors/recap/commit/abc2cb34c0e7347f36a96a19c266bd34d577f6a8))
+* **deps:** update aws-sdk-go-v2 monorepo ([#83](https://github.com/aldersfors/recap/issues/83)) ([f3f0051](https://github.com/aldersfors/recap/commit/f3f0051f1b888f94900c7a8fa11881adf2a0fd80))
+* **deps:** update aws-sdk-go-v2 monorepo ([#89](https://github.com/aldersfors/recap/issues/89)) ([13c02e0](https://github.com/aldersfors/recap/commit/13c02e0425f45525bf28d01cb84ddf26f5229076))
+* **deps:** update module github.com/alecthomas/kong to v1.17.0 ([#70](https://github.com/aldersfors/recap/issues/70)) ([c585092](https://github.com/aldersfors/recap/commit/c585092f701af0c304a130e8d5432782bb6f8cee))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.4.0 ([#66](https://github.com/aldersfors/recap/issues/66)) ([ccccd24](https://github.com/aldersfors/recap/commit/ccccd240fae56916ef445d91b55db163d7469f66))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.5.0 ([#76](https://github.com/aldersfors/recap/issues/76)) ([83c6846](https://github.com/aldersfors/recap/commit/83c6846e98029755fda9fd402c876f0a7f3995b3))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.6.0 ([#82](https://github.com/aldersfors/recap/issues/82)) ([7898e47](https://github.com/aldersfors/recap/commit/7898e47a0bf9c646bed7f8ad852df3d6c441dd12))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.7.0 ([#84](https://github.com/aldersfors/recap/issues/84)) ([c99db99](https://github.com/aldersfors/recap/commit/c99db99cd4537766d06b25f7ac1e06978e556908))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.11 ([#69](https://github.com/aldersfors/recap/issues/69)) ([1149ac2](https://github.com/aldersfors/recap/commit/1149ac2f4b5e546a61c8d8601c81e88b79673b74))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.13 ([#71](https://github.com/aldersfors/recap/issues/71)) ([e6e476b](https://github.com/aldersfors/recap/commit/e6e476bad99e938cfa2a0d1ae50330872a97ac56))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.15 ([#75](https://github.com/aldersfors/recap/issues/75)) ([5c9199c](https://github.com/aldersfors/recap/commit/5c9199c306a24d33cf4d7855bdd32154f08a9993))
+* **deps:** update module go.yaml.in/yaml/v3 to v3.0.6 ([#74](https://github.com/aldersfors/recap/issues/74)) ([17f2a0e](https://github.com/aldersfors/recap/commit/17f2a0e002ef4170d2a157a101b62bd433408964))
+* **deps:** update module go.yaml.in/yaml/v3 to v4 ([#80](https://github.com/aldersfors/recap/issues/80)) ([af4277e](https://github.com/aldersfors/recap/commit/af4277e20fab14832e490ccff28cf8a26c7ec96c))
+
 ## [0.5.1](https://github.com/aldersfors/recap/compare/v0.5.0...v0.5.1) (2026-11-01)
 
 
