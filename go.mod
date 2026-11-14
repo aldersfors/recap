@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/alecthomas/kong v1.17.0
-	github.com/anthropics/anthropic-sdk-go/v2 v2.7.0
+	github.com/anthropics/anthropic-sdk-go/v2 v2.8.0
 	github.com/aws/aws-sdk-go-v2 v1.47.8
 	github.com/aws/aws-sdk-go-v2/config v1.33.16
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.63.12
