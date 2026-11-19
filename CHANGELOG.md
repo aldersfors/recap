@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.3](https://github.com/aldersfors/recap/compare/v0.5.2...v0.5.3) (2026-11-19)
+
+
+### Bug Fixes
+
+* **deps:** update aws-sdk-go-v2 monorepo ([#94](https://github.com/aldersfors/recap/issues/94)) ([b022c10](https://github.com/aldersfors/recap/commit/b022c1083bf104ab2cdb8025c92560e13300003b))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.9.0 ([#93](https://github.com/aldersfors/recap/issues/93)) ([bbeb804](https://github.com/aldersfors/recap/commit/bbeb804d4f8c06ab090c454c8bb3123c7267dafe))
+* **deps:** update module github.com/yuin/goldmark/v2 to v2.1.16 ([#97](https://github.com/aldersfors/recap/issues/97)) ([a3854b9](https://github.com/aldersfors/recap/commit/a3854b900f73652803d6d6849db8ac5906a90661))
+
 ## [0.5.2](https://github.com/aldersfors/recap/compare/v0.5.1...v0.5.2) (2026-11-12)
 
 
