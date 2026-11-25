@@ -7,7 +7,7 @@ require (
 	github.com/anthropics/anthropic-sdk-go/v2 v2.13.0
 	github.com/aws/aws-sdk-go-v2 v1.48.0
 	github.com/aws/aws-sdk-go-v2/config v1.33.21
-	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.63.13
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.64.0
 	github.com/yuin/goldmark/v2 v2.1.16
 	go.yaml.in/yaml/v4 v4.0.0
 )
