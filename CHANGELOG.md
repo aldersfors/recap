@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.4](https://github.com/aldersfors/recap/compare/v0.5.3...v0.5.4) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** update aws-sdk-go-v2 monorepo ([#105](https://github.com/aldersfors/recap/issues/105)) ([4fb91f0](https://github.com/aldersfors/recap/commit/4fb91f0ac6dc0b0514246b4f5be841ca1dd00972))
+* **deps:** update aws-sdk-go-v2 monorepo ([#111](https://github.com/aldersfors/recap/issues/111)) ([78ae96a](https://github.com/aldersfors/recap/commit/78ae96ab3c5a9ee703720602577dd07ff8c58469))
+* **deps:** update aws-sdk-go-v2 monorepo ([#112](https://github.com/aldersfors/recap/issues/112)) ([9706825](https://github.com/aldersfors/recap/commit/9706825620fd0aacd15c632decbbf28b87ca5fcc))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.11.0 ([#104](https://github.com/aldersfors/recap/issues/104)) ([33b5c36](https://github.com/aldersfors/recap/commit/33b5c3678f2e9cb66f4fef986cf9e87cf8549c5f))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.12.0 ([#113](https://github.com/aldersfors/recap/issues/113)) ([9e5085c](https://github.com/aldersfors/recap/commit/9e5085c3f3d1ceafc4e74d3fc85129b92db36ba3))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go/v2 to v2.13.0 ([#117](https://github.com/aldersfors/recap/issues/117)) ([3587e21](https://github.com/aldersfors/recap/commit/3587e213bf507e396d68f49462d4ac37b13d2ced))
+* **deps:** update module github.com/aws/aws-sdk-go-v2/service/bedrockruntime to v1.64.0 ([#119](https://github.com/aldersfors/recap/issues/119)) ([9fa3e5c](https://github.com/aldersfors/recap/commit/9fa3e5c81bd99f166861abf88189cf61f22e0b69))
+
 ## [0.5.3](https://github.com/aldersfors/recap/compare/v0.5.2...v0.5.3) (2026-11-19)
 
 
